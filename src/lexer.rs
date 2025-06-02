@@ -80,6 +80,10 @@ pub fn lex(code: &'static str) -> Result<Vec<Token>, String> {
         return Err(invalid_char_error(c, i, current_node));
     }
 
+    if current_node == 1 && !buff.trim().is_empty() {
+        tokens.push(buffer_to_token(&buff));
+    }
+
     return Ok(tokens);
 }
 
@@ -158,9 +162,20 @@ mod tests {
     }
 
     #[test]
+    fn test_lex_string_without_tags() {
+        let code = "      string without tags    ";
+        let tokens = lex(code).unwrap();
+
+         assert_eq!(tokens,
+            vec![
+                Token::Str("string without tags".to_string()),
+            ]
+        );
+    }
+
+    #[test]
     fn test_lex_invalid_char() {
         let code = "<pdf>@</pdf>";
-        let result = lex(code);
-        assert!(result.is_err());
+        assert!(lex(code).is_err());
     }
 }
