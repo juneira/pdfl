@@ -1,4 +1,5 @@
 mod lexer;
+mod parser;
 
 fn main() {
     let code: &'static str = "
@@ -22,20 +23,12 @@ fn main() {
     ";
 
     match lexer::lex(code) {
-        Ok(tokens) => {
-            for token in &tokens {
-                match token {
-                    lexer::Token::Pdf => println!("PDF"),
-                    lexer::Token::EPdf => println!("EPDF"),
-                    lexer::Token::Content => println!("Content"),
-                    lexer::Token::EContent => println!("EContent"),
-                    lexer::Token::Page => println!("Page"),
-                    lexer::Token::EPage => println!("EPage"),
-                    lexer::Token::Text => println!("Text"),
-                    lexer::Token::EText => println!("EText"),
-                    lexer::Token::Str(str) => println!("Str({})", str)
-                }
-            }
+        Ok(mut tokens) => {
+            tokens.reverse();
+
+            let node = parser::parse(tokens.as_mut());
+
+            println!("{:?}", node);
         },
         Err(e) => println!("{}", e)
     }

@@ -1,0 +1,245 @@
+use crate::lexer::Token;
+
+#[derive(Debug, PartialEq)]
+pub struct NodePdf {
+    child_page: NodePage,
+}
+
+#[derive(Debug, PartialEq)]
+struct NodePage {
+    child_content: NodeContent,
+    child_page: Option<Box<NodePage>>,
+}
+
+#[derive(Debug, PartialEq)]
+struct NodeContent {
+    child_text: NodeText,
+}
+
+#[derive(Debug, PartialEq)]
+struct NodeText {
+    child_string: Token,
+}
+
+pub fn parse(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
+    return start(tokens);
+}
+
+fn start(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
+    let pdf_token = tokens.pop();
+    if pdf_token == None || pdf_token != Some(Token::Pdf) {
+        return Err("Esperava um token Pdf".to_string());
+    }
+
+    let child_page = match page(tokens) {
+        Ok(page_node) => page_node,
+        Err(error) => return Err(error),
+    };
+
+    let epdf_token = tokens.pop();
+    if epdf_token == None || epdf_token != Some(Token::EPdf) {
+        return Err("Esperava um token EPdf".to_string());
+    }
+
+    return Ok(NodePdf {
+        child_page: child_page,
+    });
+}
+
+fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
+    let page_token = tokens.pop();
+    if page_token == None || page_token != Some(Token::Page) {
+        return Err("Esperava um token Page".to_string());
+    }
+
+    let child_content = match content(tokens) {
+        Ok(content_node) => content_node,
+        Err(error) => return Err(error),
+    };
+
+    let epage_token = tokens.pop();
+    if epage_token == None || epage_token != Some(Token::EPage) {
+        return Err("Esperava um token EPage".to_string());
+    }
+
+    if tokens.last() == Some(&Token::EPdf) {
+        return Ok(NodePage {
+            child_content: child_content,
+            child_page: None,
+        });
+    }
+
+    match page(tokens) {
+        Ok(child_page) => {
+            return Ok(NodePage {
+                child_content: child_content,
+                child_page: Some(Box::new(child_page)),
+            });
+        }
+        Err(error) => return Err(error),
+    }
+}
+
+fn content(tokens: &mut Vec<Token>) -> Result<NodeContent, String> {
+    let content_token = tokens.pop();
+    if content_token == None || content_token != Some(Token::Content) {
+        return Err("Esperava um token Content".to_string());
+    }
+
+    let child_text = match text(tokens) {
+        Ok(text_node) => text_node,
+        Err(error) => return Err(error),
+    };
+
+    let econtent_token = tokens.pop();
+    if econtent_token == None || econtent_token != Some(Token::EContent) {
+        return Err("Esperava um token EContent".to_string());
+    }
+
+    return Ok(NodeContent {
+        child_text: child_text,
+    });
+}
+
+fn text(tokens: &mut Vec<Token>) -> Result<NodeText, String> {
+    let text_token = tokens.pop();
+    if text_token == None || text_token != Some(Token::Text) {
+        return Err("Esperava um token Text".to_string());
+    }
+
+    let child_string = match tokens.pop() {
+        Some(Token::Str(s)) => Token::Str(s),
+        _ => return Err("Esperava um token Str".to_string()),
+    };
+
+    let etext_token = tokens.pop();
+    if etext_token == None || etext_token != Some(Token::EText) {
+        return Err("Esperava um token EText".to_string());
+    }
+
+    return Ok(NodeText {
+        child_string: child_string,
+    });
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::lexer::Token;
+    use crate::parser::{parse, NodePdf, NodePage, NodeContent, NodeText};
+
+    #[test]
+    fn test_with_one_page() {
+        let mut tokens: Vec<Token> = vec![
+            Token::Pdf,
+            Token::Page,
+            Token::Content,
+            Token::Text,
+            Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+            Token::EText,
+            Token::EContent,
+            Token::EPage,
+            Token::EPdf,
+        ];
+        tokens.reverse();
+
+        let root = parse(tokens.as_mut());
+
+        assert_eq!(root.unwrap(),
+            NodePdf {
+                child_page: NodePage {
+                    child_page: None,
+                    child_content: NodeContent {
+                        child_text: NodeText {
+                            child_string: Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+                        }
+                    }
+                }
+            }
+        );
+    }
+
+    #[test]
+    fn test_with_two_page() {
+        let mut tokens: Vec<Token> = vec![
+            Token::Pdf,
+            Token::Page,
+            Token::Content,
+            Token::Text,
+            Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+            Token::EText,
+            Token::EContent,
+            Token::EPage,
+            Token::Page,
+            Token::Content,
+            Token::Text,
+            Token::Str("texto curto".to_string()),
+            Token::EText,
+            Token::EContent,
+            Token::EPage,
+            Token::EPdf,
+        ];
+        tokens.reverse();
+
+        let root = parse(tokens.as_mut());
+
+        assert_eq!(root.unwrap(),
+            NodePdf {
+                child_page: NodePage {
+                    child_content: NodeContent {
+                        child_text: NodeText {
+                            child_string: Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+                        }
+                    },
+                    child_page: Some(
+                        Box::new(
+                            NodePage {
+                                child_content: NodeContent {
+                                    child_text: NodeText {
+                                        child_string: Token::Str("texto curto".to_string()),
+                                    }
+                                },
+                                child_page: None,
+                            }
+                        )
+                    ),
+                }
+            }
+        );
+    }
+
+    #[test]
+    fn test_when_token_of_page_is_incorrect() {
+        let mut tokens: Vec<Token> = vec![
+            Token::Pdf,
+            Token::Page,
+            Token::Content,
+            Token::Text,
+            Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+            Token::EText,
+            Token::EContent,
+            Token::EPage,
+            Token::Page,
+            Token::Content,
+            Token::Text,
+            Token::Str("texto curto".to_string()),
+            Token::Text,
+            Token::EContent,
+            Token::EPage,
+            Token::EPdf,
+        ];
+        tokens.reverse();
+
+        let root = parse(tokens.as_mut());
+
+        assert!(root.is_err());
+    }
+
+    #[test]
+    fn test_when_tokens_are_empty() {
+        let mut tokens: Vec<Token> = vec![];
+
+        let root = parse(tokens.as_mut());
+
+        assert!(root.is_err());
+    }
+}
