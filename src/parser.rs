@@ -1,25 +1,7 @@
+mod constants;
+
+use constants::*;
 use crate::lexer::Token;
-
-#[derive(Debug, PartialEq)]
-pub struct NodePdf {
-    child_page: NodePage,
-}
-
-#[derive(Debug, PartialEq)]
-struct NodePage {
-    child_content: NodeContent,
-    child_page: Option<Box<NodePage>>,
-}
-
-#[derive(Debug, PartialEq)]
-struct NodeContent {
-    child_text: NodeText,
-}
-
-#[derive(Debug, PartialEq)]
-struct NodeText {
-    child_string: Token,
-}
 
 pub fn parse(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
     return start(tokens);
@@ -28,7 +10,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
 fn start(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
     let pdf_token = tokens.pop();
     if pdf_token == None || pdf_token != Some(Token::Pdf) {
-        return Err("Esperava um token Pdf".to_string());
+        return Err("Expected a Pdf token".to_string());
     }
 
     let child_page = match page(tokens) {
@@ -38,7 +20,7 @@ fn start(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
 
     let epdf_token = tokens.pop();
     if epdf_token == None || epdf_token != Some(Token::EPdf) {
-        return Err("Esperava um token EPdf".to_string());
+        return Err("Expected a EPdf token".to_string());
     }
 
     return Ok(NodePdf {
@@ -49,7 +31,7 @@ fn start(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
 fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
     let page_token = tokens.pop();
     if page_token == None || page_token != Some(Token::Page) {
-        return Err("Esperava um token Page".to_string());
+        return Err("Expected a Page token".to_string());
     }
 
     let child_content = match content(tokens) {
@@ -59,7 +41,7 @@ fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
 
     let epage_token = tokens.pop();
     if epage_token == None || epage_token != Some(Token::EPage) {
-        return Err("Esperava um token EPage".to_string());
+        return Err("Expected an EPage token".to_string());
     }
 
     if tokens.last() == Some(&Token::EPdf) {
@@ -83,7 +65,7 @@ fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
 fn content(tokens: &mut Vec<Token>) -> Result<NodeContent, String> {
     let content_token = tokens.pop();
     if content_token == None || content_token != Some(Token::Content) {
-        return Err("Esperava um token Content".to_string());
+        return Err("Expected a Content token".to_string());
     }
 
     let child_text = match text(tokens) {
@@ -93,7 +75,7 @@ fn content(tokens: &mut Vec<Token>) -> Result<NodeContent, String> {
 
     let econtent_token = tokens.pop();
     if econtent_token == None || econtent_token != Some(Token::EContent) {
-        return Err("Esperava um token EContent".to_string());
+        return Err("Expected an EContent token".to_string());
     }
 
     return Ok(NodeContent {
@@ -104,17 +86,17 @@ fn content(tokens: &mut Vec<Token>) -> Result<NodeContent, String> {
 fn text(tokens: &mut Vec<Token>) -> Result<NodeText, String> {
     let text_token = tokens.pop();
     if text_token == None || text_token != Some(Token::Text) {
-        return Err("Esperava um token Text".to_string());
+        return Err("Expected a Text token".to_string());
     }
 
     let child_string = match tokens.pop() {
         Some(Token::Str(s)) => Token::Str(s),
-        _ => return Err("Esperava um token Str".to_string()),
+        _ => return Err("Expected a Str token".to_string()),
     };
 
     let etext_token = tokens.pop();
     if etext_token == None || etext_token != Some(Token::EText) {
-        return Err("Esperava um token EText".to_string());
+        return Err("Expected an EText token".to_string());
     }
 
     return Ok(NodeText {
@@ -134,7 +116,7 @@ mod tests {
             Token::Page,
             Token::Content,
             Token::Text,
-            Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+            Token::Str("longer    text    here\n      pdf".to_string()),
             Token::EText,
             Token::EContent,
             Token::EPage,
@@ -150,7 +132,7 @@ mod tests {
                     child_page: None,
                     child_content: NodeContent {
                         child_text: NodeText {
-                            child_string: Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+                            child_string: Token::Str("longer    text    here\n      pdf".to_string()),
                         }
                     }
                 }
@@ -165,14 +147,14 @@ mod tests {
             Token::Page,
             Token::Content,
             Token::Text,
-            Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+            Token::Str("longer    text    here\n      pdf".to_string()),
             Token::EText,
             Token::EContent,
             Token::EPage,
             Token::Page,
             Token::Content,
             Token::Text,
-            Token::Str("texto curto".to_string()),
+            Token::Str("short text".to_string()),
             Token::EText,
             Token::EContent,
             Token::EPage,
@@ -187,7 +169,7 @@ mod tests {
                 child_page: NodePage {
                     child_content: NodeContent {
                         child_text: NodeText {
-                            child_string: Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+                            child_string: Token::Str("longer    text    here\n      pdf".to_string()),
                         }
                     },
                     child_page: Some(
@@ -195,7 +177,7 @@ mod tests {
                             NodePage {
                                 child_content: NodeContent {
                                     child_text: NodeText {
-                                        child_string: Token::Str("texto curto".to_string()),
+                                        child_string: Token::Str("short text".to_string()),
                                     }
                                 },
                                 child_page: None,
@@ -214,14 +196,14 @@ mod tests {
             Token::Page,
             Token::Content,
             Token::Text,
-            Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+            Token::Str("longer    text    here\n      pdf".to_string()),
             Token::EText,
             Token::EContent,
             Token::EPage,
             Token::Page,
             Token::Content,
             Token::Text,
-            Token::Str("texto curto".to_string()),
+            Token::Str("short text".to_string()),
             Token::Text,
             Token::EContent,
             Token::EPage,

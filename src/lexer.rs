@@ -13,31 +13,31 @@ pub fn lex(code: &'static str) -> Result<Vec<Token>, String> {
     let mut tokens: Vec<Token> = Vec::new();
 
     for (i, c) in code.chars().enumerate() {
-        // Estado de Esperada de String ou TAG
+        // Wait String or TAG
         if current_node == 0 {
             if c == '<' {
-                // Inicia o estado de TAG
+                // Start TAG's state
                 current_node = 3;
                 buff.push(c);
                 continue;
             }
 
             if is_valid_char_to_token_string(c) {
-                // Inicia o estado de String
+                // Start String's state
                 current_node = 1;
                 buff.push(c);
                 continue;
             }
 
             if is_ignored_char(c) {
-                // Ignora espaços em branco
+                // Ignores whitespace characters and new lines
                 continue;
             }
 
             return Err(invalid_char_error(c, i, current_node));
         }
 
-        // Estado de String
+        // String's state
         if current_node == 1 {
             if is_valid_char_to_token_string(c) || is_ignored_char(c) {
                 buff.push(c);
@@ -49,7 +49,7 @@ pub fn lex(code: &'static str) -> Result<Vec<Token>, String> {
                 buff.clear();
                 buff.push(c);
 
-                // Estado de Inicio de TAG - "<"
+                // Start TAG's state - "<"
                 current_node = 3;
                 continue;
             }
@@ -61,12 +61,12 @@ pub fn lex(code: &'static str) -> Result<Vec<Token>, String> {
             current_node = RULES[current_node as usize][current_c];
             buff.push(c);
 
-            // Estado inválido
+            // State invalid
             if current_node == -1 {
-                return Err(unexcepted_token_error(c, i));
+                return Err(unexpected_token_error(c, i));
             }
 
-            // Estado de Fim de TAG - ">"
+            // End Tag's state - ">"
             if current_node == 21 {
                 tokens.push(buffer_to_token(&buff));
                 buff.clear();
@@ -110,10 +110,10 @@ fn is_ignored_char(c: char) -> bool {
 }
 
 fn invalid_char_error(c: char, i: usize, current_node: i32) -> String {
-    format!("Invalid Char '{}' on position {} - State {}", c, i, current_node)
+    format!("Invalid character '{}' at position {} - State {}", c, i, current_node)
 }
 
-fn unexcepted_token_error(c: char, i: usize) -> String {
+fn unexpected_token_error(c: char, i: usize) -> String {
     format!("Unexpected token '{}' at position {}", c, i)
 }
 
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_lex_with_spaces_and_newlines() {
-        let code = "<pdf>\n  <page>\n    <content>\n      <text>texto    mais    longoooo\n      pdf\n    </text>\n    </content>\n</page>\n</pdf>";
+        let code = "<pdf>\n  <page>\n    <content>\n      <text>text    too    loooong\n      pdf\n    </text>\n    </content>\n</page>\n</pdf>";
         let tokens = lex(code).unwrap();
 
          assert_eq!(tokens,
@@ -152,7 +152,7 @@ mod tests {
                 Token::Page,
                 Token::Content,
                 Token::Text,
-                Token::Str("texto    mais    longoooo\n      pdf".to_string()),
+                Token::Str("text    too    loooong\n      pdf".to_string()),
                 Token::EText,
                 Token::EContent,
                 Token::EPage,
