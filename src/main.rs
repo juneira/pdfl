@@ -1,5 +1,6 @@
 mod lexer;
 mod parser;
+mod pdf_tree;
 
 fn main() {
     let code: &'static str = "
