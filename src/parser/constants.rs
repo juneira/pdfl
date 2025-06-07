@@ -1,22 +1,22 @@
 use crate::lexer::Token;
 
 #[derive(Debug, PartialEq)]
-pub struct NodePdf {
-    pub child_page: NodePage,
+pub struct PdfNode {
+    pub child_page: PageNode,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct NodePage {
-    pub child_content: NodeContent,
-    pub child_page: Option<Box<NodePage>>,
+pub struct PageNode {
+    pub child_content: ContentNode,
+    pub child_page: Option<Box<PageNode>>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct NodeContent {
-    pub child_text: NodeText,
+pub struct ContentNode {
+    pub child_text: TextNode,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct NodeText {
+pub struct TextNode {
     pub child_string: Token,
 }

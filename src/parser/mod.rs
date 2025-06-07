@@ -3,11 +3,11 @@ mod constants;
 use constants::*;
 use crate::lexer::Token;
 
-pub fn parse(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
+pub fn parse(tokens: &mut Vec<Token>) -> Result<PdfNode, String> {
     return start(tokens);
 }
 
-fn start(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
+fn start(tokens: &mut Vec<Token>) -> Result<PdfNode, String> {
     let pdf_token = tokens.pop();
     if pdf_token == None || pdf_token != Some(Token::Pdf) {
         return Err("Expected a Pdf token".to_string());
@@ -23,12 +23,12 @@ fn start(tokens: &mut Vec<Token>) -> Result<NodePdf, String> {
         return Err("Expected a EPdf token".to_string());
     }
 
-    return Ok(NodePdf {
+    return Ok(PdfNode {
         child_page: child_page,
     });
 }
 
-fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
+fn page(tokens: &mut Vec<Token>) -> Result<PageNode, String> {
     let page_token = tokens.pop();
     if page_token == None || page_token != Some(Token::Page) {
         return Err("Expected a Page token".to_string());
@@ -45,7 +45,7 @@ fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
     }
 
     if tokens.last() == Some(&Token::EPdf) {
-        return Ok(NodePage {
+        return Ok(PageNode {
             child_content: child_content,
             child_page: None,
         });
@@ -53,7 +53,7 @@ fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
 
     match page(tokens) {
         Ok(child_page) => {
-            return Ok(NodePage {
+            return Ok(PageNode {
                 child_content: child_content,
                 child_page: Some(Box::new(child_page)),
             });
@@ -62,7 +62,7 @@ fn page(tokens: &mut Vec<Token>) -> Result<NodePage, String> {
     }
 }
 
-fn content(tokens: &mut Vec<Token>) -> Result<NodeContent, String> {
+fn content(tokens: &mut Vec<Token>) -> Result<ContentNode, String> {
     let content_token = tokens.pop();
     if content_token == None || content_token != Some(Token::Content) {
         return Err("Expected a Content token".to_string());
@@ -78,12 +78,12 @@ fn content(tokens: &mut Vec<Token>) -> Result<NodeContent, String> {
         return Err("Expected an EContent token".to_string());
     }
 
-    return Ok(NodeContent {
+    return Ok(ContentNode {
         child_text: child_text,
     });
 }
 
-fn text(tokens: &mut Vec<Token>) -> Result<NodeText, String> {
+fn text(tokens: &mut Vec<Token>) -> Result<TextNode, String> {
     let text_token = tokens.pop();
     if text_token == None || text_token != Some(Token::Text) {
         return Err("Expected a Text token".to_string());
@@ -99,7 +99,7 @@ fn text(tokens: &mut Vec<Token>) -> Result<NodeText, String> {
         return Err("Expected an EText token".to_string());
     }
 
-    return Ok(NodeText {
+    return Ok(TextNode {
         child_string: child_string,
     });
 }
@@ -107,7 +107,7 @@ fn text(tokens: &mut Vec<Token>) -> Result<NodeText, String> {
 #[cfg(test)]
 mod tests {
     use crate::lexer::Token;
-    use crate::parser::{parse, NodePdf, NodePage, NodeContent, NodeText};
+    use crate::parser::{parse, PdfNode, PageNode, ContentNode, TextNode};
 
     #[test]
     fn test_with_one_page() {
@@ -127,11 +127,11 @@ mod tests {
         let root = parse(tokens.as_mut());
 
         assert_eq!(root.unwrap(),
-            NodePdf {
-                child_page: NodePage {
+            PdfNode {
+                child_page: PageNode {
                     child_page: None,
-                    child_content: NodeContent {
-                        child_text: NodeText {
+                    child_content: ContentNode {
+                        child_text: TextNode {
                             child_string: Token::Str("longer    text    here\n      pdf".to_string()),
                         }
                     }
@@ -165,18 +165,18 @@ mod tests {
         let root = parse(tokens.as_mut());
 
         assert_eq!(root.unwrap(),
-            NodePdf {
-                child_page: NodePage {
-                    child_content: NodeContent {
-                        child_text: NodeText {
+            PdfNode {
+                child_page: PageNode {
+                    child_content: ContentNode {
+                        child_text: TextNode {
                             child_string: Token::Str("longer    text    here\n      pdf".to_string()),
                         }
                     },
                     child_page: Some(
                         Box::new(
-                            NodePage {
-                                child_content: NodeContent {
-                                    child_text: NodeText {
+                            PageNode {
+                                child_content: ContentNode {
+                                    child_text: TextNode {
                                         child_string: Token::Str("short text".to_string()),
                                     }
                                 },
