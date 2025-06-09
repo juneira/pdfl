@@ -1,30 +1,15 @@
+mod ast2pdft;
 mod lexer;
 mod parser;
 mod pdf_tree;
-mod ast2pdft;
+
+use std::io::{self, Read};
 
 fn main() {
-    let code: &'static str = "
-    <pdf>
-        <page>
-            <content>
-                <text>
-                    texto    mais    longoooo
-                    pdf
-                </text>
-            </content>
-        </page>
-        <page>
-            <content>
-                <text>
-                    Outro texto
-                </text>
-            </content>
-        </page>
-    </pdf>
-    ";
+    let mut code = String::new();
+    io::stdin().read_to_string(&mut code).expect("Failed to read from stdin");
 
-    match lexer::lex(code) {
+    match lexer::lex(code.as_str()) {
         Ok(mut tokens) => {
             tokens.reverse();
 
@@ -34,9 +19,16 @@ fn main() {
 
             let node = pdft.to_buffer();
 
-            println!("{}", String::from_utf8(node).unwrap());
-
-        },
-        Err(e) => println!("{}", e)
+            let file = std::fs::File::create("output.pdf");
+            match file {
+                Ok(mut file) => {
+                    use std::io::Write;
+                    file.write_all(&node).unwrap();
+                    println!("PDF generated successfully!");
+                }
+                Err(e) => println!("Error creating file: {}", e),
+            }
+        }
+        Err(e) => println!("{}", e),
     }
 }

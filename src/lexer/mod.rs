@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 pub use constants::Token;
 
-pub fn lex(code: &'static str) -> Result<Vec<Token>, String> {
+pub fn lex(code: &str) -> Result<Vec<Token>, String> {
     let dict: HashMap<char, usize> = DICT_ENTRIES.iter().cloned().collect();
 
     let mut current_node: i32 = 0;

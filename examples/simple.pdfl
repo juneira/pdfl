@@ -1,0 +1,16 @@
+<pdf>
+  <page>
+    <content>
+      <text>
+        Hello
+      </text>
+    </content>
+  </page>
+  <page>
+    <content>
+      <text>
+        World
+      </text>
+    </content>
+  </page>
+</pdf>
