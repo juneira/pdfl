@@ -1,4 +1,3 @@
-use super::pages_node::PagesNode;
 use super::content_node::ContentNode;
 use super::font_node::FontNode;
 use std::collections::HashMap;
@@ -8,7 +7,6 @@ pub struct PageNode {
     pub gen_num: usize,
     pub resources: HashMap<String, FontNode>,
     pub contents: ContentNode,
-    pub parent: Option<Box<PagesNode>>,
 }
 
 impl PageNode {

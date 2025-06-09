@@ -6,13 +6,13 @@ mod catalog_node;
 mod content_node;
 mod text_node;
 
-use pdf_node::PdfNode;
-use font_node::FontNode;
-use page_node::PageNode;
-use pages_node::PagesNode;
-use catalog_node::CatalogNode;
-use content_node::ContentNode;
-use text_node::TextNode;
+pub use pdf_node::PdfNode;
+pub use font_node::FontNode;
+pub use page_node::PageNode;
+pub use pages_node::PagesNode;
+pub use catalog_node::CatalogNode;
+pub use content_node::ContentNode;
+pub use text_node::TextNode;
 
 pub fn gen_pdf(pdf_node: PdfNode) -> Vec<u8> {
     return pdf_node.to_buffer();
@@ -52,16 +52,14 @@ mod tests {
                             contents: ContentNode {
                                 obj_num: 4,
                                 gen_num: 0,
-                                length: 44,
                                 content: TextNode {
                                     font: "F1".to_string(),
                                     font_size: 24,
                                     x_pos: 100,
                                     y_pos: 700,
-                                    text: "Ola mundo".to_string(),
+                                    text: "Hello World".to_string(),
                                 },
                             },
-                            parent: None,
                         },
                     ],
                 },
@@ -95,12 +93,12 @@ endobj
 >>
 endobj
 4 0 obj
-<< /Length 44>>
+<< /Length 43>>
 stream
 BT
 /F1 24 Tf
 100 700 Td
-(Ola mundo) Tj
+(Hello World) Tj
 ET
 endstream
 endobj

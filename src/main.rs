@@ -1,6 +1,7 @@
 mod lexer;
 mod parser;
 mod pdf_tree;
+mod ast2pdft;
 
 fn main() {
     let code: &'static str = "
@@ -29,7 +30,12 @@ fn main() {
 
             let node = parser::parse(tokens.as_mut());
 
-            println!("{:?}", node);
+            let pdft = ast2pdft::to_pdft(node.unwrap());
+
+            let node = pdft.to_buffer();
+
+            println!("{}", String::from_utf8(node).unwrap());
+
         },
         Err(e) => println!("{}", e)
     }

@@ -1,6 +1,6 @@
 mod constants;
 
-use constants::*;
+pub use constants::*;
 use crate::lexer::Token;
 
 pub fn parse(tokens: &mut Vec<Token>) -> Result<PdfNode, String> {
