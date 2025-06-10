@@ -101,13 +101,24 @@ fn content_node_from_ast(
 }
 
 fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::TextNode {
-    return crate::pdf_tree::TextNode {
+    let x_pos = ast_text
+        .attributes
+        .get("pos_x")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(100);
+    let y_pos = ast_text
+        .attributes
+        .get("pos_y")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(700);
+
+    crate::pdf_tree::TextNode {
         font: "F1".to_string(),
         font_size: 24,
-        x_pos: 100,
-        y_pos: 700,
+        x_pos,
+        y_pos,
         text: ast_text.child_string.clone(),
-    };
+    }
 }
 
 #[cfg(test)]
@@ -220,5 +231,15 @@ startxref
 973
 %%EOF");
 
-}
+    }
+
+    #[test]
+    fn test_text_position_attributes() {
+        let code = "<pdf><page><content><text pos_x=\"20\" pos_y=\"50\">a</text></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8(buffer).unwrap();
+        assert!(pdf_string.contains("20 50 Td"));
+    }
 }

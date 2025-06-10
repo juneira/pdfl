@@ -1,4 +1,4 @@
-use crate::parser::{PdfNode, PageNode, ContentNode, TextNode};
+use crate::parser::{PdfNode, PageNode, ContentNode, TextNode, parse_attributes};
 
 grammar;
 
@@ -18,7 +18,8 @@ Content: ContentNode = {
 };
 
 Text: TextNode = {
-    "<text>" <s:r"[^<]*"> "</text>" => TextNode {
-        child_string: s.trim().to_string()
+    <open:r#"<text[^>]*>"#> <s:r"[^<]*"> "</text>" => TextNode {
+        child_string: s.trim().to_string(),
+        attributes: parse_attributes(open.trim_start_matches("<text").trim_end_matches('>')),
     },
 };

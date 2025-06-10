@@ -15,6 +15,17 @@ pub fn parse(input: &str) -> Result<PdfNode, String> {
     }
 }
 
+pub fn parse_attributes(input: &str) -> std::collections::HashMap<String, String> {
+    let mut map = std::collections::HashMap::new();
+    for part in input.split_whitespace() {
+        if let Some((k, v)) = part.split_once('=') {
+            let v = v.trim_matches('"');
+            map.insert(k.to_string(), v.to_string());
+        }
+    }
+    map
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -51,5 +62,15 @@ three</text></content></page></pdf>";
         assert_eq!(result.child_page.child_content.child_texts.len(), 2);
         assert_eq!(result.child_page.child_content.child_texts[0].child_string, "one");
         assert_eq!(result.child_page.child_content.child_texts[1].child_string, "two");
+    }
+
+    #[test]
+    fn test_parse_text_with_attributes() {
+        let input = "<pdf><page><content><text pos_x=\"20\" pos_y=\"50\">hello</text></content></page></pdf>";
+        let result = parse(input).unwrap();
+        let text = &result.child_page.child_content.child_texts[0];
+        assert_eq!(text.child_string, "hello");
+        assert_eq!(text.attributes.get("pos_x"), Some(&"20".to_string()));
+        assert_eq!(text.attributes.get("pos_y"), Some(&"50".to_string()));
     }
 }
