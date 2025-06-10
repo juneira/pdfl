@@ -3,7 +3,7 @@ use super::text_node::TextNode;
 pub struct ContentNode {
     pub obj_num: usize,
     pub gen_num: usize,
-    pub content: TextNode,
+    pub contents: Vec<TextNode>,
 }
 
 impl ContentNode {
@@ -16,14 +16,15 @@ impl ContentNode {
     }
 
     fn to_obj(&self) -> String {
-        let text = self.content.to_obj();
+        let texts: Vec<String> = self.contents.iter().map(|t| t.to_obj()).collect();
+        let joined = texts.join("\n");
 
         return format!(
             "{} {} obj\n<< /Length {}>>\nstream\n{}\nendstream\nendobj\n",
             self.obj_num,
             self.gen_num,
-            text.as_bytes().len(),
-            text
+            joined.as_bytes().len(),
+            joined
         );
     }
 }

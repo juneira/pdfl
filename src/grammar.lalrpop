@@ -14,7 +14,7 @@ Page: PageNode = {
 };
 
 Content: ContentNode = {
-    "<content>" <text:Text> "</content>" => ContentNode { child_text: text },
+    "<content>" <texts:Text+> "</content>" => ContentNode { child_texts: texts },
 };
 
 Text: TextNode = {
