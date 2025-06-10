@@ -1,125 +1,54 @@
-mod constants;
+use logos::Logos;
 
-use constants::*;
-use std::collections::HashMap;
-
-pub use constants::Token;
+#[derive(Logos, Debug, PartialEq, Clone)]
+#[logos(skip r"[ \t\n\r]+")]
+pub enum Token {
+    #[token("<pdf>")]
+    Pdf,
+    #[token("</pdf>")]
+    EPdf,
+    #[token("<page>")]
+    Page,
+    #[token("</page>")]
+    EPage,
+    #[token("<content>")]
+    Content,
+    #[token("</content>")]
+    EContent,
+    #[token("<text>")]
+    Text,
+    #[token("</text>")]
+    EText,
+    #[regex(r"[^\s<][^<]*", |lex| {
+        let slice = lex.slice();
+        if slice.is_ascii() {
+            Ok(slice.trim().to_string())
+        } else {
+            Err(())
+        }
+    })]
+    Str(String),
+}
 
 pub fn lex(code: &str) -> Result<Vec<Token>, String> {
-    let dict: HashMap<char, usize> = DICT_ENTRIES.iter().cloned().collect();
+    let mut lexer = Token::lexer(code);
+    let mut tokens = Vec::new();
 
-    let mut current_node: i32 = 0;
-    let mut buff: String = String::new();
-    let mut tokens: Vec<Token> = Vec::new();
-
-    for (i, c) in code.chars().enumerate() {
-        // Wait String or TAG
-        if current_node == 0 {
-            if c == '<' {
-                // Start TAG's state
-                current_node = 3;
-                buff.push(c);
-                continue;
+    while let Some(token) = lexer.next() {
+        match token {
+            Ok(tok) => tokens.push(tok),
+            Err(_) => {
+                return Err(format!("Invalid token '{}' at position {}", lexer.slice(), lexer.span().start));
             }
-
-            if is_valid_char_to_token_string(c) {
-                // Start String's state
-                current_node = 1;
-                buff.push(c);
-                continue;
-            }
-
-            if is_ignored_char(c) {
-                // Ignores whitespace characters and new lines
-                continue;
-            }
-
-            return Err(invalid_char_error(c, i, current_node));
         }
-
-        // String's state
-        if current_node == 1 {
-            if is_valid_char_to_token_string(c) || is_ignored_char(c) {
-                buff.push(c);
-                continue;
-            }
-
-            if c == '<' {
-                tokens.push(buffer_to_token(&buff));
-                buff.clear();
-                buff.push(c);
-
-                // Start TAG's state - "<"
-                current_node = 3;
-                continue;
-            }
-
-            return Err(invalid_char_error(c, i, current_node));
-        }
-
-        if let Some(&current_c) = dict.get(&c) {
-            current_node = RULES[current_node as usize][current_c];
-            buff.push(c);
-
-            // State invalid
-            if current_node == -1 {
-                return Err(unexpected_token_error(c, i));
-            }
-
-            // End Tag's state - ">"
-            if current_node == 21 {
-                tokens.push(buffer_to_token(&buff));
-                buff.clear();
-
-                current_node = 0;
-            }
-
-            continue;
-        }
-
-        return Err(invalid_char_error(c, i, current_node));
     }
 
-    if current_node == 1 && !buff.trim().is_empty() {
-        tokens.push(buffer_to_token(&buff));
-    }
-
-    return Ok(tokens);
-}
-
-fn buffer_to_token(buffer: &String) -> Token {
-    match buffer.as_str() {
-        "<pdf>" => Token::Pdf,
-        "</pdf>" => Token::EPdf,
-        "<content>" => Token::Content,
-        "</content>" => Token::EContent,
-        "<page>" => Token::Page,
-        "</page>" => Token::EPage,
-        "<text>" => Token::Text,
-        "</text>" => Token::EText,
-        _ => Token::Str(buffer.trim().to_string()),
-    }
-}
-
-fn is_valid_char_to_token_string(c: char) -> bool {
-    c.is_ascii_graphic() && c != '<'
-}
-
-fn is_ignored_char(c: char) -> bool {
-    c == ' ' || c == '\n' || c == '\r' || c == '\t'
-}
-
-fn invalid_char_error(c: char, i: usize, current_node: i32) -> String {
-    format!("Invalid character '{}' at position {} - State {}", c, i, current_node)
-}
-
-fn unexpected_token_error(c: char, i: usize) -> String {
-    format!("Unexpected token '{}' at position {}", c, i)
+    Ok(tokens)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::lexer::{lex, Token};
+    use super::*;
 
     #[test]
     fn test_lex_simple_tags() {
