@@ -117,7 +117,6 @@ fn unexpected_token_error(c: char, i: usize) -> String {
     format!("Unexpected token '{}' at position {}", c, i)
 }
 
-// Testes
 #[cfg(test)]
 mod tests {
     use crate::lexer::{lex, Token};
