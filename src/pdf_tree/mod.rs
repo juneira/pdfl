@@ -48,13 +48,13 @@ mod tests {
                             contents: ContentNode {
                                 obj_num: 4,
                                 gen_num: 0,
-                                content: TextNode {
+                                contents: vec![TextNode {
                                     font: "F1".to_string(),
                                     font_size: 24,
                                     x_pos: 100,
                                     y_pos: 700,
                                     text: "Hello World".to_string(),
-                                },
+                                }],
                             },
                         },
                     ],

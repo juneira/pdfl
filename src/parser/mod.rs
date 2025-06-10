@@ -31,7 +31,7 @@ three</text></content></page></pdf>";
 
         match result {
             Ok(pdf_node) => {
-                assert_eq!(pdf_node.child_page.child_content.child_text.child_string, "one   two\nthree".to_string());
+                assert_eq!(pdf_node.child_page.child_content.child_texts[0].child_string, "one   two\nthree".to_string());
             }
             Err(e) => panic!("Expected Ok, got Err: {}", e),
         }
@@ -42,5 +42,14 @@ three</text></content></page></pdf>";
         let input = "<pdf><page></pdf>";
         let result = parse(input);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_multiple_texts() {
+        let input = "<pdf><page><content><text>one</text><text>two</text></content></page></pdf>";
+        let result = parse(input).unwrap();
+        assert_eq!(result.child_page.child_content.child_texts.len(), 2);
+        assert_eq!(result.child_page.child_content.child_texts[0].child_string, "one");
+        assert_eq!(result.child_page.child_content.child_texts[1].child_string, "two");
     }
 }

@@ -87,12 +87,16 @@ fn content_node_from_ast(
     obj_num: usize,
     gen_num: usize,
 ) -> crate::pdf_tree::ContentNode {
-    let text_node = text_node_from_ast(&ast_content.child_text);
+    let text_nodes = ast_content
+        .child_texts
+        .iter()
+        .map(|t| text_node_from_ast(t))
+        .collect();
 
     crate::pdf_tree::ContentNode {
         obj_num: obj_num,
         gen_num: gen_num,
-        content: text_node,
+        contents: text_nodes,
     }
 }
 

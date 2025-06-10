@@ -11,7 +11,7 @@ pub struct PageNode {
 
 #[derive(Debug, PartialEq)]
 pub struct ContentNode {
-    pub child_text: TextNode,
+    pub child_texts: Vec<TextNode>,
 }
 
 #[derive(Debug, PartialEq)]
