@@ -141,7 +141,7 @@ mod tests {
     }
 
     #[test]
-    fn test_with_two_page() {
+    fn test_with_two_pages() {
         let mut tokens: Vec<Token> = vec![
             Token::Pdf,
             Token::Page,
