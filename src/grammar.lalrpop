@@ -1,0 +1,24 @@
+use crate::parser::{PdfNode, PageNode, ContentNode, TextNode};
+
+grammar;
+
+pub Pdf: PdfNode = {
+    "<pdf>" <page:Page> "</pdf>" => PdfNode { child_page: page },
+};
+
+Page: PageNode = {
+    "<page>" <content:Content> "</page>" <next:Page?> => PageNode {
+        child_content: content,
+        child_page: next.map(Box::new),
+    },
+};
+
+Content: ContentNode = {
+    "<content>" <text:Text> "</content>" => ContentNode { child_text: text },
+};
+
+Text: TextNode = {
+    "<text>" <s:r"[^<]*"> "</text>" => TextNode {
+        child_string: s.trim().to_string()
+    },
+};

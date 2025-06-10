@@ -14,10 +14,6 @@ pub use catalog_node::CatalogNode;
 pub use content_node::ContentNode;
 pub use text_node::TextNode;
 
-pub fn gen_pdf(pdf_node: PdfNode) -> Vec<u8> {
-    return pdf_node.to_buffer();
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -66,7 +62,7 @@ mod tests {
             },
         };
 
-        let pdf_string = String::from_utf8(gen_pdf(pdf_node)).unwrap();
+        let pdf_string = String::from_utf8(pdf_node.to_buffer()).unwrap();
 
         assert_eq!(pdf_string, "%PDF-1.4
 1 0 obj

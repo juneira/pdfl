@@ -1,115 +1,118 @@
 use std::collections::HashMap;
 
 pub fn to_pdft(pdf_node: crate::parser::PdfNode) -> crate::pdf_tree::PdfNode {
-  let version = "1.4".to_string();
-  let (catalog, total_obj) = catalog_node_from_ast(pdf_node);
+    let version = "1.4".to_string();
+    let (catalog, total_obj) = catalog_node_from_ast(pdf_node);
 
-  crate::pdf_tree::PdfNode {
-    version,
-    total_obj,
-    root: catalog,
-  }
+    crate::pdf_tree::PdfNode {
+        version,
+        total_obj,
+        root: catalog,
+    }
 }
 
 fn catalog_node_from_ast(ast_pdf: crate::parser::PdfNode) -> (crate::pdf_tree::CatalogNode, usize) {
-  let (pages_node, total_obj) = pages_node_from_ast(ast_pdf.child_page);
+    let (pages_node, total_obj) = pages_node_from_ast(ast_pdf.child_page);
 
-  let catalog = crate::pdf_tree::CatalogNode {
-    obj_num: 1,
-    gen_num: 0,
-    pages: pages_node,
-  };
+    let catalog = crate::pdf_tree::CatalogNode {
+        obj_num: 1,
+        gen_num: 0,
+        pages: pages_node,
+    };
 
-  (catalog, total_obj + 1)
+    (catalog, total_obj + 1)
 }
 
 fn pages_node_from_ast(ast_page: crate::parser::PageNode) -> (crate::pdf_tree::PagesNode, usize) {
-  let mut total_obj = 0;
-  let mut kids: Vec<crate::pdf_tree::PageNode> = Vec::new();
+    let mut total_obj = 0;
+    let mut kids: Vec<crate::pdf_tree::PageNode> = Vec::new();
 
-  let mut obj_num = 3;
+    let mut obj_num = 3;
 
-  let mut current_page = ast_page;
+    let mut current_page = ast_page;
 
-  loop {
-    let page_node = page_node_from_ast(&current_page, obj_num, 0);
-    total_obj += 3;
-    obj_num += 3;
+    loop {
+        let page_node = page_node_from_ast(&current_page, obj_num, 0);
+        total_obj += 3;
+        obj_num += 3;
 
-    kids.push(page_node);
+        kids.push(page_node);
 
-    if current_page.child_page == None {
-      break;
+        if current_page.child_page == None {
+            break;
+        }
+
+        current_page = *current_page.child_page.unwrap();
     }
 
-    current_page = *current_page.child_page.unwrap();
-  }
+    let pages_node = crate::pdf_tree::PagesNode {
+        obj_num: 2,
+        gen_num: 0,
+        count: kids.len(),
+        kids,
+    };
 
-  let pages_node = crate::pdf_tree::PagesNode {
-    obj_num: 2,
-    gen_num: 0,
-    count: kids.len(),
-    kids,
-  };
-
-  (pages_node, total_obj + 1)
+    (pages_node, total_obj + 1)
 }
 
-fn page_node_from_ast(ast_page: &crate::parser::PageNode, obj_num: usize, gen_num: usize) -> crate::pdf_tree::PageNode {
-  let mut resources = HashMap::new();
-  resources.insert("F1".to_string(), resource(obj_num + 1, gen_num));
+fn page_node_from_ast(
+    ast_page: &crate::parser::PageNode,
+    obj_num: usize,
+    gen_num: usize,
+) -> crate::pdf_tree::PageNode {
+    let mut resources = HashMap::new();
+    resources.insert("F1".to_string(), resource(obj_num + 1, gen_num));
 
-  let content_node = content_node_from_ast(&ast_page.child_content, obj_num + 2, gen_num);
+    let content_node = content_node_from_ast(&ast_page.child_content, obj_num + 2, gen_num);
 
-  crate::pdf_tree::PageNode {
-    obj_num,
-    gen_num,
-    resources,
-    contents: content_node,
-  }
+    crate::pdf_tree::PageNode {
+        obj_num,
+        gen_num,
+        resources,
+        contents: content_node,
+    }
 }
 
 fn resource(obj_num: usize, gen_num: usize) -> crate::pdf_tree::FontNode {
-  crate::pdf_tree::FontNode {
-    obj_num: obj_num,
-    gen_num: gen_num,
-    subtype: "Type1".to_string(),
-    base_font: "Helvetica".to_string(),
-  }
+    crate::pdf_tree::FontNode {
+        obj_num: obj_num,
+        gen_num: gen_num,
+        subtype: "Type1".to_string(),
+        base_font: "Helvetica".to_string(),
+    }
 }
 
-fn content_node_from_ast(ast_content: &crate::parser::ContentNode, obj_num: usize, gen_num: usize) -> crate::pdf_tree::ContentNode {
-  let text_node = text_node_from_ast(&ast_content.child_text);
+fn content_node_from_ast(
+    ast_content: &crate::parser::ContentNode,
+    obj_num: usize,
+    gen_num: usize,
+) -> crate::pdf_tree::ContentNode {
+    let text_node = text_node_from_ast(&ast_content.child_text);
 
-  crate::pdf_tree::ContentNode {
-    obj_num: obj_num,
-    gen_num: gen_num,
-    content: text_node,
-  }
+    crate::pdf_tree::ContentNode {
+        obj_num: obj_num,
+        gen_num: gen_num,
+        content: text_node,
+    }
 }
 
 fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::TextNode {
-  match &ast_text.child_string {
-    crate::lexer::Token::Str(text) => {
-      return crate::pdf_tree::TextNode {
+    return crate::pdf_tree::TextNode {
         font: "F1".to_string(),
         font_size: 24,
         x_pos: 100,
         y_pos: 700,
-        text: text.clone(),
-      }
-    },
-    _ => panic!("Expected a string token for text node"),
-  };
+        text: ast_text.child_string.clone(),
+    };
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn test_to_pdft() {
-    let code: &'static str = "
+    #[test]
+    fn test_to_pdft() {
+        let code: &'static str = "
     <pdf>
         <page>
             <content>
@@ -129,17 +132,15 @@ mod tests {
     </pdf>
     ";
 
-    match crate::lexer::lex(code) {
-      Ok(mut tokens) => {
-        tokens.reverse();
+    let node = crate::parser::parse(code).unwrap();
+    let pdft = to_pdft(node);
 
-        let node = crate::parser::parse(tokens.as_mut()).unwrap();
-        let pdft = to_pdft(node);
+    let buffer = pdft.to_buffer();
+    let pdf_string = String::from_utf8(buffer).unwrap();
 
-        let buffer = pdft.to_buffer();
-        let pdf_string = String::from_utf8(buffer).unwrap();
-
-        assert_eq!(pdf_string, "%PDF-1.4
+    assert_eq!(
+        pdf_string,
+        "%PDF-1.4
 1 0 obj
 << /Type /Catalog
 /Pages 2 0 R
@@ -213,9 +214,7 @@ trailer
 >>
 startxref
 973
-%%EOF")
-      },
-      Err(e) => println!("{}", e)
-    }
-  }
+%%EOF");
+
+}
 }

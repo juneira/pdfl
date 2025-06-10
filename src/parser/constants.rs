@@ -1,5 +1,3 @@
-use crate::lexer::Token;
-
 #[derive(Debug, PartialEq)]
 pub struct PdfNode {
     pub child_page: PageNode,
@@ -18,5 +16,5 @@ pub struct ContentNode {
 
 #[derive(Debug, PartialEq)]
 pub struct TextNode {
-    pub child_string: Token,
+    pub child_string: String,
 }
