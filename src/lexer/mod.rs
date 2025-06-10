@@ -102,7 +102,7 @@ fn buffer_to_token(buffer: &String) -> Token {
 }
 
 fn is_valid_char_to_token_string(c: char) -> bool {
-    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+    c.is_ascii_graphic() && c != '<'
 }
 
 fn is_ignored_char(c: char) -> bool {
@@ -175,7 +175,27 @@ mod tests {
 
     #[test]
     fn test_lex_invalid_char() {
-        let code = "<pdf>@</pdf>";
+        let code = "<pdf>é</pdf>";
         assert!(lex(code).is_err());
+    }
+
+    #[test]
+    fn test_lex_string_with_numbers_and_punctuation() {
+        let code = "<pdf><page><content><text>Hello 123!?.</text></content></page></pdf>";
+        let tokens = lex(code).unwrap();
+
+        assert_eq!(tokens,
+            vec![
+                Token::Pdf,
+                Token::Page,
+                Token::Content,
+                Token::Text,
+                Token::Str("Hello 123!?.".to_string()),
+                Token::EText,
+                Token::EContent,
+                Token::EPage,
+                Token::EPdf,
+            ]
+        );
     }
 }
