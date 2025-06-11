@@ -111,10 +111,15 @@ fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::Te
         .get("pos_y")
         .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(700);
+    let font_size = ast_text
+        .attributes
+        .get("font_size")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(24);
 
     crate::pdf_tree::TextNode {
         font: "F1".to_string(),
-        font_size: 24,
+        font_size,
         x_pos,
         y_pos,
         text: ast_text.child_string.clone(),
@@ -241,5 +246,15 @@ startxref
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("20 50 Td"));
+    }
+
+    #[test]
+    fn test_text_font_size_attribute() {
+        let code = "<pdf><page><content><text font_size=\"30\">a</text></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8(buffer).unwrap();
+        assert!(pdf_string.contains("/F1 30 Tf"));
     }
 }
