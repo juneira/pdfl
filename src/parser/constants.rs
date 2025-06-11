@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Debug, PartialEq)]
 pub struct PdfNode {
     pub child_page: PageNode,
@@ -17,4 +19,5 @@ pub struct ContentNode {
 #[derive(Debug, PartialEq)]
 pub struct TextNode {
     pub child_string: String,
+    pub attributes: HashMap<String, String>,
 }
