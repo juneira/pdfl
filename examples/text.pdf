@@ -1,0 +1,59 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<< /Type /Pages
+/Count 1
+/Kids [3 0 R]
+>>
+endobj
+3 0 obj
+<< /Type /Page
+/Resources << /Font << /F1 4 0 R >> >>
+/Contents 5 0 R
+>>
+endobj
+4 0 obj
+<< /Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+5 0 obj
+<< /Length 152>>
+stream
+BT
+/F1 50 Tf
+225 700 Td
+(PDFL) Tj
+ET
+BT
+/F1 20 Tf
+130 620 Td
+(The Markup Language to generate PDF) Tj
+ET
+BT
+/F1 10 Tf
+250 100 Td
+(@juneira - 2025) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f
+0000000010 00000 n
+0000000060 00000 n
+0000000118 00000 n
+0000000207 00000 n
+0000000366 00000 n
+trailer
+<< /Size 5
+/Root 1 0 R
+>>
+startxref
+367
+%%EOF

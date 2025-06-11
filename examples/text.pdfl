@@ -1,0 +1,15 @@
+<pdf>
+  <page>
+    <content>
+      <text pos_x="225" pos_y="700" font_size="50">
+        PDFL
+      </text>
+      <text pos_x="130" pos_y="620" font_size="20">
+        The Markup Language to generate PDF
+      </text>
+      <text pos_x="250" pos_y="100" font_size="10">
+        @juneira - 2025
+      </text>
+    </content>
+  </page>
+</pdf>
