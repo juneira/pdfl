@@ -34,9 +34,9 @@ mod tests {
     fn test_parse_simple_pdf() {
         let input = "        <pdf>
 
-        <page>     <content>
+        <page>     <resource><font key=\"f1\" /></resource> <content>
 
-<text>  one   two
+<text font=\"f1\">  one   two
 three</text></content></page></pdf>";
         let result = parse(input);
 
@@ -57,7 +57,7 @@ three</text></content></page></pdf>";
 
     #[test]
     fn test_parse_multiple_texts() {
-        let input = "<pdf><page><content><text>one</text><text>two</text></content></page></pdf>";
+        let input = "<pdf><page><resource><font key=\"f1\" /></resource><content><text font=\"f1\">one</text><text font=\"f1\">two</text></content></page></pdf>";
         let result = parse(input).unwrap();
         assert_eq!(result.child_page.child_content.child_texts.len(), 2);
         assert_eq!(result.child_page.child_content.child_texts[0].child_string, "one");
@@ -66,7 +66,7 @@ three</text></content></page></pdf>";
 
     #[test]
     fn test_parse_text_with_attributes() {
-        let input = "<pdf><page><content><text pos_x=\"20\" pos_y=\"50\">hello</text></content></page></pdf>";
+        let input = "<pdf><page><resource><font key=\"f1\" /></resource><content><text font=\"f1\" pos_x=\"20\" pos_y=\"50\">hello</text></content></page></pdf>";
         let result = parse(input).unwrap();
         let text = &result.child_page.child_content.child_texts[0];
         assert_eq!(text.child_string, "hello");

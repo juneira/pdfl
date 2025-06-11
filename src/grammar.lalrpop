@@ -1,4 +1,4 @@
-use crate::parser::{PdfNode, PageNode, ContentNode, TextNode, parse_attributes};
+use crate::parser::{PdfNode, PageNode, ContentNode, TextNode, ResourceNode, FontNode, parse_attributes};
 
 grammar;
 
@@ -7,7 +7,8 @@ pub Pdf: PdfNode = {
 };
 
 Page: PageNode = {
-    "<page>" <content:Content> "</page>" <next:Page?> => PageNode {
+    "<page>" <resource:Resource?> <content:Content> "</page>" <next:Page?> => PageNode {
+        resources: resource,
         child_content: content,
         child_page: next.map(Box::new),
     },
@@ -15,6 +16,16 @@ Page: PageNode = {
 
 Content: ContentNode = {
     "<content>" <texts:Text+> "</content>" => ContentNode { child_texts: texts },
+};
+
+Resource: ResourceNode = {
+    "<resource>" <fonts:Font+> "</resource>" => ResourceNode { fonts: fonts },
+};
+
+Font: FontNode = {
+    <open:r#"<font[^>]*/>"#> => FontNode {
+        attributes: parse_attributes(open.trim_start_matches("<font").trim_end_matches("/>")),
+    },
 };
 
 Text: TextNode = {
