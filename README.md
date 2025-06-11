@@ -2,7 +2,7 @@
 
 PDFL (PDF Language) is a markup language designed to generate PDF documents, inspired by the syntax of HTML.
 
-![image](https://github.com/user-attachments/assets/e34de423-c9dd-459f-9931-816ca5924d1c)
+![image](https://github.com/user-attachments/assets/31553f2f-b10b-417a-b991-fed53f1f4bfe)
 
 ## Project Status
 This project is currently under development. You can follow the development process live on the YouTube channel:
