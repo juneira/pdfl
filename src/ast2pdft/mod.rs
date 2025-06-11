@@ -32,9 +32,9 @@ fn pages_node_from_ast(ast_page: crate::parser::PageNode) -> (crate::pdf_tree::P
     let mut current_page = ast_page;
 
     loop {
-        let page_node = page_node_from_ast(&current_page, obj_num, 0);
-        total_obj += 3;
-        obj_num += 3;
+        let (page_node, used_obj) = page_node_from_ast(&current_page, obj_num, 0);
+        total_obj += used_obj;
+        obj_num += used_obj;
 
         kids.push(page_node);
 
@@ -59,18 +59,56 @@ fn page_node_from_ast(
     ast_page: &crate::parser::PageNode,
     obj_num: usize,
     gen_num: usize,
-) -> crate::pdf_tree::PageNode {
+) -> (crate::pdf_tree::PageNode, usize) {
     let mut resources = HashMap::new();
-    resources.insert("F1".to_string(), resource(obj_num + 1, gen_num));
+    let mut next_obj = obj_num + 1;
 
-    let content_node = content_node_from_ast(&ast_page.child_content, obj_num + 2, gen_num);
+    if let Some(res) = &ast_page.resources {
+        for font in &res.fonts {
+            let key = font
+                .attributes
+                .get("key")
+                .expect("font key is required")
+                .to_string();
+            let subtype = font
+                .attributes
+                .get("subtype")
+                .cloned()
+                .unwrap_or_else(|| "Type1".to_string());
+            let base_font = font
+                .attributes
+                .get("base_font")
+                .cloned()
+                .unwrap_or_else(|| "Helvetica".to_string());
 
-    crate::pdf_tree::PageNode {
-        obj_num,
-        gen_num,
-        resources,
-        contents: content_node,
+            resources.insert(
+                key,
+                crate::pdf_tree::FontNode {
+                    obj_num: next_obj,
+                    gen_num,
+                    subtype,
+                    base_font,
+                },
+            );
+            next_obj += 1;
+        }
+    } else {
+        resources.insert("F1".to_string(), resource(next_obj, gen_num));
+        next_obj += 1;
     }
+
+    let content_node = content_node_from_ast(&ast_page.child_content, next_obj, gen_num);
+    next_obj += 1;
+
+    (
+        crate::pdf_tree::PageNode {
+            obj_num,
+            gen_num,
+            resources,
+            contents: content_node,
+        },
+        next_obj - obj_num,
+    )
 }
 
 fn resource(obj_num: usize, gen_num: usize) -> crate::pdf_tree::FontNode {
@@ -117,8 +155,15 @@ fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::Te
         .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(24);
 
+    let font = ast_text
+        .attributes
+        .get("font")
+        .and_then(|v| v.parse::<String>().ok())
+        .unwrap_or("F1".to_string())
+        .to_string();
+
     crate::pdf_tree::TextNode {
-        font: "F1".to_string(),
+        font,
         font_size,
         x_pos,
         y_pos,
@@ -135,16 +180,22 @@ mod tests {
         let code: &'static str = "
     <pdf>
         <page>
+            <resource>
+                <font key=\"F1\" />
+            </resource>
             <content>
-                <text>
+                <text font=\"F1\">
                     texto    mais    longoooo
                     pdf
                 </text>
             </content>
         </page>
         <page>
+            <resource>
+                <font key=\"F1\" />
+            </resource>
             <content>
-                <text>
+                <text font=\"F1\">
                     Outro texto
                 </text>
             </content>
@@ -240,7 +291,7 @@ startxref
 
     #[test]
     fn test_text_position_attributes() {
-        let code = "<pdf><page><content><text pos_x=\"20\" pos_y=\"50\">a</text></content></page></pdf>";
+        let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" pos_x=\"20\" pos_y=\"50\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node);
         let buffer = pdft.to_buffer();
@@ -250,7 +301,7 @@ startxref
 
     #[test]
     fn test_text_font_size_attribute() {
-        let code = "<pdf><page><content><text font_size=\"30\">a</text></content></page></pdf>";
+        let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" font_size=\"30\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node);
         let buffer = pdft.to_buffer();

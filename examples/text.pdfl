@@ -1,13 +1,18 @@
 <pdf>
   <page>
+    <resource>
+      <font key="Courier" base_font="Courier" />
+      <font key="times" base_font="Times-Roman" />
+      <font key="helvetica" base_font="Helvetica" />
+    </resource>
     <content>
-      <text pos_x="225" pos_y="700" font_size="50">
+      <text font="Courier" pos_x="225" pos_y="700" font_size="50">
         PDFL
       </text>
-      <text pos_x="130" pos_y="620" font_size="20">
+      <text font="helvetica" pos_x="130" pos_y="620" font_size="20">
         The Markup Language to generate PDF
       </text>
-      <text pos_x="250" pos_y="100" font_size="10">
+      <text font="times" pos_x="250" pos_y="100" font_size="10">
         @juneira - 2025
       </text>
     </content>

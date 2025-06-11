@@ -7,8 +7,19 @@ pub struct PdfNode {
 
 #[derive(Debug, PartialEq)]
 pub struct PageNode {
+    pub resources: Option<ResourceNode>,
     pub child_content: ContentNode,
     pub child_page: Option<Box<PageNode>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ResourceNode {
+    pub fonts: Vec<FontNode>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct FontNode {
+    pub attributes: HashMap<String, String>,
 }
 
 #[derive(Debug, PartialEq)]
