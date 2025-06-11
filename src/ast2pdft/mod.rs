@@ -162,12 +162,21 @@ fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::Te
         .unwrap_or("F1".to_string())
         .to_string();
 
+    let color = ast_text
+        .attributes
+        .get("color")
+        .map(|v| v.trim_start_matches('#'))
+        .and_then(|v| u32::from_str_radix(v, 16).ok())
+        .map(|rgb| (((rgb >> 16) & 0xff) as u8, ((rgb >> 8) & 0xff) as u8, (rgb & 0xff) as u8))
+        .unwrap_or((0, 0, 0));
+
     crate::pdf_tree::TextNode {
         font,
         font_size,
         x_pos,
         y_pos,
         text: ast_text.child_string.clone(),
+        color,
     }
 }
 
@@ -236,10 +245,11 @@ endobj
 >>
 endobj
 5 0 obj
-<< /Length 81>>
+<< /Length 90>>
 stream
 BT
 /F1 24 Tf
+0 0 0 rg
 100 700 Td
 (texto    mais    longoooo
                     pdf) Tj
@@ -259,10 +269,11 @@ endobj
 >>
 endobj
 8 0 obj
-<< /Length 43>>
+<< /Length 52>>
 stream
 BT
 /F1 24 Tf
+0 0 0 rg
 100 700 Td
 (Outro texto) Tj
 ET
@@ -276,15 +287,15 @@ xref
 0000000124 00000 n
 0000000213 00000 n
 0000000372 00000 n
-0000000724 00000 n
-0000000813 00000 n
-0000000972 00000 n
+0000000733 00000 n
+0000000822 00000 n
+0000000981 00000 n
 trailer
 << /Size 8
 /Root 1 0 R
 >>
 startxref
-973
+982
 %%EOF");
 
     }
