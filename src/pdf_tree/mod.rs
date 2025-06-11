@@ -54,6 +54,7 @@ mod tests {
                                     x_pos: 100,
                                     y_pos: 700,
                                     text: "Hello World".to_string(),
+                                    color: (0, 0, 0),
                                 }],
                             },
                         },
@@ -89,10 +90,11 @@ endobj
 >>
 endobj
 4 0 obj
-<< /Length 43>>
+<< /Length 52>>
 stream
 BT
 /F1 24 Tf
+0 0 0 rg
 100 700 Td
 (Hello World) Tj
 ET
