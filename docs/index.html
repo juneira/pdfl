@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>PDFL Compiler</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .input-section,
+    .preview-section {
+      flex: 1;
+    }
+
+    .examples-bar {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #dee2e6;
+    }
+
+    .examples-bar h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #495057;
+    }
+
+    .examples-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .example-btn {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.2s;
+    }
+
+    .example-btn:hover {
+      background-color: #5a6268;
+    }
+
+    textarea {
+      width: 100%;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 8px;
+    }
+
+    button {
+      background-color: #007cba;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #005a87;
+    }
+
+    .pdf-preview {
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .pdf-preview-header {
+      background-color: #e9ecef;
+      padding: 10px;
+      border-bottom: 1px solid #ced4da;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pdf-preview-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pdf-preview-controls button {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    .pdf-canvas-container {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    canvas {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      background: white;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .status.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    #auto-update {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <img src="logo.png" alt="PDFL Compiler" style="display: block; margin: 0 auto 20px auto; max-height: 80px;">
+
+  <div class="examples-bar">
+    <h3>Examples:</h3>
+    <div class="examples-buttons">
+      <button class="example-btn" onclick="loadExample('simple')">Simple Example</button>
+      <button class="example-btn" onclick="loadExample('text')">Formatted Text</button>
+      <button class="example-btn" onclick="loadExample('multipage')">Multiple Pages</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="input-section">
+      <h2>PDFL Code</h2>
+      <textarea id="pdfl-input" rows="25">
+<pdf>
+  <page>
+    <content>
+      <text>
+        Hello World
+      </text>
+    </content>
+  </page>
+</pdf>
+      </textarea>
+      <br><br>
+      <button onclick="compilePDFL()">Generate PDF</button>
+      <button onclick="downloadCurrentPDF()" id="download-btn" disabled>Download PDF</button>
+      <label>
+        <input type="checkbox" id="auto-update" checked> Auto update
+      </label>
+      <div id="status"></div>
+    </div>
+
+    <div class="preview-section">
+      <h2>PDF Preview</h2>
+      <div class="pdf-preview">
+        <div class="pdf-preview-header">
+          <span id="page-info">Page 1 of 1</span>
+          <div class="pdf-preview-controls">
+            <button onclick="previousPage()" id="prev-btn" disabled>← Previous</button>
+            <button onclick="nextPage()" id="next-btn" disabled>Next →</button>
+          </div>
+        </div>
+        <div class="pdf-canvas-container">
+          <canvas id="pdf-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script type="module">
+    import init, { compile_pdfl } from './pdfl.js';
+
+    // Configure PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let currentPdfDoc = null;
+    let currentPage = 1;
+    let currentPdfBytes = null;
+    let autoUpdateTimeout = null;
+
+    const examples = {
+      simple: `<pdf>
+  <page>
+    <content>
+      <text>
+        Hello World from PDFL!
+      </text>
+    </content>
+  </page>
+</pdf>`,
+
+      text: `<pdf>
+  <page>
+    <resource>
+      <font key="Courier" base_font="Courier" />
+      <font key="times" base_font="Times-Roman" />
+      <font key="helvetica" base_font="Helvetica" />
+    </resource>
+    <content>
+      <text font="Courier" pos_x="225" pos_y="700" font_size="50" color="#FF3333">
+        PDFL
+      </text>
+      <text font="helvetica" pos_x="130" pos_y="620" font_size="20" color="#6B6B6B">
+        The Markup Language to generate PDF
+      </text>
+      <text font="times" pos_x="250" pos_y="100" font_size="10">
+        @juneira - 2025
+      </text>
+    </content>
+  </page>
+</pdf>`,
+
+      multipage: `<pdf>
+  <page>
+    <content>
+      <text pos_x="200" pos_y="400" font_size="36">
+        Page 1
+      </text>
+      <text pos_x="150" pos_y="300" font_size="16">
+        This is the first page
+      </text>
+    </content>
+  </page>
+  <page>
+    <content>
+      <text pos_x="200" pos_y="400" font_size="36">
+        Page 2
+      </text>
+      <text pos_x="150" pos_y="300" font_size="16">
+        This is the second page
+      </text>
+    </content>
+  </page>
+</pdf>`
+    };
+
+    async function initWasm() {
+      try {
+        await init();
+        window.compilePDFL = compilePDFL;
+        window.loadExample = loadExample;
+        window.downloadCurrentPDF = downloadCurrentPDF;
+        window.previousPage = previousPage;
+        window.nextPage = nextPage;
+
+        updateStatus('WASM loaded successfully!', 'success');
+
+        // Setup auto-update
+        const textArea = document.getElementById('pdfl-input');
+        const autoUpdateCheckbox = document.getElementById('auto-update');
+
+        textArea.addEventListener('input', () => {
+          if (autoUpdateCheckbox.checked) {
+            clearTimeout(autoUpdateTimeout);
+            autoUpdateTimeout = setTimeout(compilePDFL, 1000); // Wait 1 second after user stops typing
+          }
+        });
+
+        // Initial compilation
+        compilePDFL();
+      } catch (error) {
+        updateStatus('Error loading WASM: ' + error, 'error');
+      }
+    }
+
+    function updateStatus(message, type = 'info') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type}`;
+    }
+
+    function compilePDFL() {
+      const input = document.getElementById('pdfl-input').value.trim();
+      if (!input) {
+        updateStatus('Enter some PDFL code', 'info');
+        return;
+      }
+
+      try {
+        updateStatus('Compiling...', 'info');
+        currentPdfBytes = compile_pdfl(input);
+        renderPDF(currentPdfBytes);
+        document.getElementById('download-btn').disabled = false;
+        updateStatus('PDF generated successfully!', 'success');
+      } catch (error) {
+        updateStatus('Error compiling: ' + error, 'error');
+        document.getElementById('download-btn').disabled = true;
+      }
+    }
+
+    async function renderPDF(pdfBytes) {
+      try {
+        if (currentPdfDoc) {
+          currentPdfDoc.destroy();
+        }
+
+        currentPdfDoc = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
+        currentPage = 1;
+        updatePageInfo();
+        renderCurrentPage();
+      } catch (error) {
+        updateStatus('Error rendering PDF: ' + error, 'error');
+      }
+    }
+
+    async function renderCurrentPage() {
+      if (!currentPdfDoc) return;
+
+      try {
+        const page = await currentPdfDoc.getPage(currentPage);
+        const canvas = document.getElementById('pdf-canvas');
+        const context = canvas.getContext('2d');
+
+        // Calculate scale to fit the container
+        const container = document.querySelector('.pdf-canvas-container');
+        const containerWidth = container.clientWidth - 40; // Account for padding
+        const viewport = page.getViewport({ scale: 1.0 });
+        const scale = Math.min(containerWidth / viewport.width, 1.5);
+
+        const scaledViewport = page.getViewport({ scale });
+
+        canvas.height = scaledViewport.height;
+        canvas.width = scaledViewport.width;
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: scaledViewport
+        };
+
+        await page.render(renderContext).promise;
+      } catch (error) {
+        updateStatus('Error rendering page: ' + error, 'error');
+      }
+    }
+
+    function updatePageInfo() {
+      if (!currentPdfDoc) return;
+
+      document.getElementById('page-info').textContent =
+        `Page ${currentPage} of ${currentPdfDoc.numPages}`;
+
+      document.getElementById('prev-btn').disabled = currentPage <= 1;
+      document.getElementById('next-btn').disabled = currentPage >= currentPdfDoc.numPages;
+    }
+
+    function previousPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        updatePageInfo();
+        renderCurrentPage();
+      }
+    }
+
+    function nextPage() {
+      if (currentPdfDoc && currentPage < currentPdfDoc.numPages) {
+        currentPage++;
+        updatePageInfo();
+        renderCurrentPage();
+      }
+    }
+
+    function loadExample(exampleName) {
+      if (examples[exampleName]) {
+        document.getElementById('pdfl-input').value = examples[exampleName];
+        if (document.getElementById('auto-update').checked) {
+          compilePDFL();
+        }
+      }
+    }
+
+    function downloadCurrentPDF() {
+      if (!currentPdfBytes) {
+        updateStatus('No PDF to download', 'error');
+        return;
+      }
+
+      const blob = new Blob([currentPdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pdfl-output.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      if (currentPdfDoc) {
+        renderCurrentPage();
+      }
+    });
+
+    initWasm();
+  </script>
+</body>
+
+</html>
