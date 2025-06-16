@@ -125,16 +125,23 @@ fn content_node_from_ast(
     obj_num: usize,
     gen_num: usize,
 ) -> crate::pdf_tree::ContentNode {
-    let text_nodes = ast_content
-        .child_texts
+    let elements = ast_content
+        .children
         .iter()
-        .map(|t| text_node_from_ast(t))
+        .map(|el| match el {
+            crate::parser::ContentElement::Text(t) => {
+                crate::pdf_tree::ContentItem::Text(text_node_from_ast(t))
+            }
+            crate::parser::ContentElement::Rectangle(r) => {
+                crate::pdf_tree::ContentItem::Rectangle(rect_node_from_ast(r))
+            }
+        })
         .collect();
 
     crate::pdf_tree::ContentNode {
         obj_num: obj_num,
         gen_num: gen_num,
-        contents: text_nodes,
+        contents: elements,
     }
 }
 
@@ -176,6 +183,44 @@ fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::Te
         x_pos,
         y_pos,
         text: ast_text.child_string.clone(),
+        color,
+    }
+}
+
+fn rect_node_from_ast(ast_rect: &crate::parser::RectangleNode) -> crate::pdf_tree::RectangleNode {
+    let x_pos = ast_rect
+        .attributes
+        .get("pos_x")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let y_pos = ast_rect
+        .attributes
+        .get("pos_y")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let width = ast_rect
+        .attributes
+        .get("width")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let height = ast_rect
+        .attributes
+        .get("height")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let color = ast_rect
+        .attributes
+        .get("color")
+        .map(|v| v.trim_start_matches('#'))
+        .and_then(|v| u32::from_str_radix(v, 16).ok())
+        .map(|rgb| (((rgb >> 16) & 0xff) as u8, ((rgb >> 8) & 0xff) as u8, (rgb & 0xff) as u8))
+        .unwrap_or((0, 0, 0));
+
+    crate::pdf_tree::RectangleNode {
+        x_pos,
+        y_pos,
+        width,
+        height,
         color,
     }
 }
@@ -318,5 +363,15 @@ startxref
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("/F1 30 Tf"));
+    }
+
+    #[test]
+    fn test_rectangle_generation() {
+        let code = "<pdf><page><content><rectangle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8(buffer).unwrap();
+        assert!(pdf_string.contains("10 20 30 40 re"));
     }
 }

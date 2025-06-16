@@ -5,6 +5,7 @@ mod pages_node;
 mod catalog_node;
 mod content_node;
 mod text_node;
+mod rectangle_node;
 
 pub use pdf_node::PdfNode;
 pub use font_node::FontNode;
@@ -13,6 +14,8 @@ pub use pages_node::PagesNode;
 pub use catalog_node::CatalogNode;
 pub use content_node::ContentNode;
 pub use text_node::TextNode;
+pub use rectangle_node::RectangleNode;
+pub use content_node::ContentItem;
 
 #[cfg(test)]
 mod tests {
@@ -48,14 +51,14 @@ mod tests {
                             contents: ContentNode {
                                 obj_num: 4,
                                 gen_num: 0,
-                                contents: vec![TextNode {
+                                contents: vec![ContentItem::Text(TextNode {
                                     font: "F1".to_string(),
                                     font_size: 24,
                                     x_pos: 100,
                                     y_pos: 700,
                                     text: "Hello World".to_string(),
                                     color: (0, 0, 0),
-                                }],
+                                })],
                             },
                         },
                     ],

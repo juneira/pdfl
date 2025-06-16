@@ -163,6 +163,7 @@
       <button class="example-btn" onclick="loadExample('simple')">Simple Example</button>
       <button class="example-btn" onclick="loadExample('text')">Formatted Text</button>
       <button class="example-btn" onclick="loadExample('multipage')">Multiple Pages</button>
+      <button class="example-btn" onclick="loadExample('rectangle')">Rectangle</button>
     </div>
   </div>
 
@@ -269,6 +270,14 @@
       <text pos_x="150" pos_y="300" font_size="16">
         This is the second page
       </text>
+    </content>
+  </page>
+</pdf>`,
+      rectangle: `<pdf>
+  <page>
+    <content>
+      <rectangle pos_x="100" pos_y="600" width="100" height="50" color="#FF0000" />
+      <text font="helvetica" pos_x="110" pos_y="620" font_size="12">Red Box</text>
     </content>
   </page>
 </pdf>`
