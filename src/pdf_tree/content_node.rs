@@ -1,9 +1,24 @@
 use super::text_node::TextNode;
+use super::rectangle_node::RectangleNode;
+
+pub enum ContentItem {
+    Text(TextNode),
+    Rectangle(RectangleNode),
+}
+
+impl ContentItem {
+    pub fn to_obj(&self) -> String {
+        match self {
+            ContentItem::Text(t) => t.to_obj(),
+            ContentItem::Rectangle(r) => r.to_obj(),
+        }
+    }
+}
 
 pub struct ContentNode {
     pub obj_num: usize,
     pub gen_num: usize,
-    pub contents: Vec<TextNode>,
+    pub contents: Vec<ContentItem>,
 }
 
 impl ContentNode {

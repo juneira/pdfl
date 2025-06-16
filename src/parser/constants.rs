@@ -23,12 +23,23 @@ pub struct FontNode {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum ContentElement {
+    Text(TextNode),
+    Rectangle(RectangleNode),
+}
+
+#[derive(Debug, PartialEq)]
 pub struct ContentNode {
-    pub child_texts: Vec<TextNode>,
+    pub children: Vec<ContentElement>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct TextNode {
     pub child_string: String,
+    pub attributes: HashMap<String, String>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct RectangleNode {
     pub attributes: HashMap<String, String>,
 }
