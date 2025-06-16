@@ -89,7 +89,7 @@ three</text></content></page></pdf>";
 
     #[test]
     fn test_parse_rectangle() {
-        let input = "<pdf><page><content><retacle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" /></content></page></pdf>";
+        let input = "<pdf><page><content><rectangle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" /></content></page></pdf>";
         let result = parse(input).unwrap();
         match &result.child_page.child_content.children[0] {
             ContentElement::Rectangle(rect) => {

@@ -34,8 +34,8 @@ Element: ContentElement = {
 };
 
 Rectangle: RectangleNode = {
-    <open:r#"<retacle[^>]*/>"#> => RectangleNode {
-        attributes: parse_attributes(open.trim_start_matches("<retacle").trim_end_matches("/>")),
+    <open:r#"<rectangle[^>]*/>"#> => RectangleNode {
+        attributes: parse_attributes(open.trim_start_matches("<rectangle").trim_end_matches("/>")),
     },
 };
 

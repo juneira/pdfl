@@ -18,10 +18,10 @@ At the moment, we are **not accepting pull requests (PRs)**, as the first phase 
 
 ## Shapes
 
-PDFl supports basic shapes. You can draw rectangles inside a `<content>` block using the `<retacle />` element:
+PDFl supports basic shapes. You can draw rectangles inside a `<content>` block using the `<rectangle />` element:
 
 ```pdfl
-<retacle pos_x="100" pos_y="100" width="100" height="100" color="#FF0000" />
+<rectangle pos_x="100" pos_y="100" width="100" height="100" color="#FF0000" />
 ```
 
 Attributes are optional and default to position `(50,50)`, size `50x50`, and the color black.

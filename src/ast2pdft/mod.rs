@@ -367,7 +367,7 @@ startxref
 
     #[test]
     fn test_rectangle_generation() {
-        let code = "<pdf><page><content><retacle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
+        let code = "<pdf><page><content><rectangle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node);
         let buffer = pdft.to_buffer();
