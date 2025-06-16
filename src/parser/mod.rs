@@ -42,7 +42,10 @@ three</text></content></page></pdf>";
 
         match result {
             Ok(pdf_node) => {
-                assert_eq!(pdf_node.child_page.child_content.child_texts[0].child_string, "one   two\nthree".to_string());
+                match &pdf_node.child_page.child_content.children[0] {
+                    ContentElement::Text(t) => assert_eq!(t.child_string, "one   two\nthree".to_string()),
+                    _ => panic!("Expected text node"),
+                }
             }
             Err(e) => panic!("Expected Ok, got Err: {}", e),
         }
@@ -59,18 +62,43 @@ three</text></content></page></pdf>";
     fn test_parse_multiple_texts() {
         let input = "<pdf><page><resource><font key=\"f1\" /></resource><content><text font=\"f1\">one</text><text font=\"f1\">two</text></content></page></pdf>";
         let result = parse(input).unwrap();
-        assert_eq!(result.child_page.child_content.child_texts.len(), 2);
-        assert_eq!(result.child_page.child_content.child_texts[0].child_string, "one");
-        assert_eq!(result.child_page.child_content.child_texts[1].child_string, "two");
+        assert_eq!(result.child_page.child_content.children.len(), 2);
+        match &result.child_page.child_content.children[0] {
+            ContentElement::Text(t) => assert_eq!(t.child_string, "one"),
+            _ => panic!("Expected text"),
+        }
+        match &result.child_page.child_content.children[1] {
+            ContentElement::Text(t) => assert_eq!(t.child_string, "two"),
+            _ => panic!("Expected text"),
+        }
     }
 
     #[test]
     fn test_parse_text_with_attributes() {
         let input = "<pdf><page><resource><font key=\"f1\" /></resource><content><text font=\"f1\" pos_x=\"20\" pos_y=\"50\">hello</text></content></page></pdf>";
         let result = parse(input).unwrap();
-        let text = &result.child_page.child_content.child_texts[0];
-        assert_eq!(text.child_string, "hello");
-        assert_eq!(text.attributes.get("pos_x"), Some(&"20".to_string()));
-        assert_eq!(text.attributes.get("pos_y"), Some(&"50".to_string()));
+        match &result.child_page.child_content.children[0] {
+            ContentElement::Text(text) => {
+                assert_eq!(text.child_string, "hello");
+                assert_eq!(text.attributes.get("pos_x"), Some(&"20".to_string()));
+                assert_eq!(text.attributes.get("pos_y"), Some(&"50".to_string()));
+            }
+            _ => panic!("Expected text"),
+        }
+    }
+
+    #[test]
+    fn test_parse_rectangle() {
+        let input = "<pdf><page><content><retacle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" /></content></page></pdf>";
+        let result = parse(input).unwrap();
+        match &result.child_page.child_content.children[0] {
+            ContentElement::Rectangle(rect) => {
+                assert_eq!(rect.attributes.get("pos_x"), Some(&"10".to_string()));
+                assert_eq!(rect.attributes.get("pos_y"), Some(&"20".to_string()));
+                assert_eq!(rect.attributes.get("width"), Some(&"30".to_string()));
+                assert_eq!(rect.attributes.get("height"), Some(&"40".to_string()));
+            }
+            _ => panic!("Expected rectangle"),
+        }
     }
 }
