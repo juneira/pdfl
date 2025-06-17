@@ -135,6 +135,9 @@ fn content_node_from_ast(
             crate::parser::ContentElement::Rectangle(r) => {
                 crate::pdf_tree::ContentItem::Rectangle(rect_node_from_ast(r))
             }
+            crate::parser::ContentElement::Line(l) => {
+                crate::pdf_tree::ContentItem::Line(line_node_from_ast(l))
+            }
         })
         .collect();
 
@@ -221,6 +224,38 @@ fn rect_node_from_ast(ast_rect: &crate::parser::RectangleNode) -> crate::pdf_tre
         y_pos,
         width,
         height,
+        color,
+    }
+}
+
+fn line_node_from_ast(ast_line: &crate::parser::LineNode) -> crate::pdf_tree::LineNode {
+    let x_pos = ast_line
+        .attributes
+        .get("pos_x")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let y_pos = ast_line
+        .attributes
+        .get("pos_y")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let width = ast_line
+        .attributes
+        .get("width")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let color = ast_line
+        .attributes
+        .get("color")
+        .map(|v| v.trim_start_matches('#'))
+        .and_then(|v| u32::from_str_radix(v, 16).ok())
+        .map(|rgb| (((rgb >> 16) & 0xff) as u8, ((rgb >> 8) & 0xff) as u8, (rgb & 0xff) as u8))
+        .unwrap_or((0, 0, 0));
+
+    crate::pdf_tree::LineNode {
+        x_pos,
+        y_pos,
+        width,
         color,
     }
 }
@@ -373,5 +408,15 @@ startxref
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("10 20 30 40 re"));
+    }
+
+    #[test]
+    fn test_line_generation() {
+        let code = "<pdf><page><content><line pos_x=\"5\" pos_y=\"15\" width=\"25\" color=\"#00FF00\" /></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8(buffer).unwrap();
+        assert!(pdf_string.contains("5 15 m"));
     }
 }

@@ -101,4 +101,18 @@ three</text></content></page></pdf>";
             _ => panic!("Expected rectangle"),
         }
     }
+
+    #[test]
+    fn test_parse_line() {
+        let input = "<pdf><page><content><line pos_x=\"15\" pos_y=\"25\" width=\"35\" /></content></page></pdf>";
+        let result = parse(input).unwrap();
+        match &result.child_page.child_content.children[0] {
+            ContentElement::Line(line) => {
+                assert_eq!(line.attributes.get("pos_x"), Some(&"15".to_string()));
+                assert_eq!(line.attributes.get("pos_y"), Some(&"25".to_string()));
+                assert_eq!(line.attributes.get("width"), Some(&"35".to_string()));
+            }
+            _ => panic!("Expected line"),
+        }
+    }
 }

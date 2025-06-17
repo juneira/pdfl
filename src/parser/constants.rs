@@ -26,6 +26,7 @@ pub struct FontNode {
 pub enum ContentElement {
     Text(TextNode),
     Rectangle(RectangleNode),
+    Line(LineNode),
 }
 
 #[derive(Debug, PartialEq)]
@@ -41,5 +42,10 @@ pub struct TextNode {
 
 #[derive(Debug, PartialEq)]
 pub struct RectangleNode {
+    pub attributes: HashMap<String, String>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct LineNode {
     pub attributes: HashMap<String, String>,
 }
