@@ -1,4 +1,4 @@
-use crate::parser::{PdfNode, PageNode, ContentNode, ContentElement, TextNode, RectangleNode, ResourceNode, FontNode, parse_attributes};
+use crate::parser::{PdfNode, PageNode, ContentNode, ContentElement, TextNode, RectangleNode, LineNode, ResourceNode, FontNode, parse_attributes};
 
 grammar;
 
@@ -31,11 +31,18 @@ Font: FontNode = {
 Element: ContentElement = {
     <t:Text> => ContentElement::Text(t),
     <r:Rectangle> => ContentElement::Rectangle(r),
+    <l:Line> => ContentElement::Line(l),
 };
 
 Rectangle: RectangleNode = {
     <open:r#"<rectangle[^>]*/>"#> => RectangleNode {
         attributes: parse_attributes(open.trim_start_matches("<rectangle").trim_end_matches("/>")),
+    },
+};
+
+Line: LineNode = {
+    <open:r#"<line[^>]*/>"#> => LineNode {
+        attributes: parse_attributes(open.trim_start_matches("<line").trim_end_matches("/>")),
     },
 };
 

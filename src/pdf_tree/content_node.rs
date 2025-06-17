@@ -1,9 +1,11 @@
 use super::text_node::TextNode;
 use super::rectangle_node::RectangleNode;
+use super::line_node::LineNode;
 
 pub enum ContentItem {
     Text(TextNode),
     Rectangle(RectangleNode),
+    Line(LineNode),
 }
 
 impl ContentItem {
@@ -11,6 +13,7 @@ impl ContentItem {
         match self {
             ContentItem::Text(t) => t.to_obj(),
             ContentItem::Rectangle(r) => r.to_obj(),
+            ContentItem::Line(l) => l.to_obj(),
         }
     }
 }
