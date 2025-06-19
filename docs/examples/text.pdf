@@ -12,8 +12,14 @@ endobj
 endobj
 3 0 obj
 << /Type /Page
-/Resources << /Font << /helvetica 6 0 R /times 5 0 R /Courier 4 0 R >> >>
+/Resources << /Font << /Courier 4 0 R /helvetica 6 0 R /times 5 0 R >> >>
 /Contents 7 0 R
+>>
+endobj
+4 0 obj
+<< /Type /Font
+/Subtype /Type1
+/BaseFont /Courier
 >>
 endobj
 6 0 obj
@@ -28,14 +34,8 @@ endobj
 /BaseFont /Times-Roman
 >>
 endobj
-4 0 obj
-<< /Type /Font
-/Subtype /Type1
-/BaseFont /Courier
->>
-endobj
 7 0 obj
-<< /Length 288>>
+<< /Length 813>>
 stream
 1 0.2 0.2 rg
 0 660 612 200 re
@@ -62,6 +62,27 @@ BT
 250 100 Td
 (@juneira - 2025) Tj
 ET
+1 1 1 rg
+145 730 m
+145 735.5228 140.52284 740 135 740 c
+129.47716 740 125 735.5228 125 730 c
+125 724.4772 129.47716 720 135 720 c
+140.52284 720 145 724.4772 145 730 c
+f
+1 1 1 rg
+110 705 m
+110 707.7614 107.76142 710 105 710 c
+102.23858 710 100 707.7614 100 705 c
+100 702.2386 102.23858 700 105 700 c
+107.76142 700 110 702.2386 110 705 c
+f
+1 1 1 rg
+117 722.5 m
+117 723.88074 115.880714 725 114.5 725 c
+113.119286 725 112 723.88074 112 722.5 c
+112 721.11926 113.119286 720 114.5 720 c
+115.880714 720 117 721.11926 117 722.5 c
+f
 endstream
 endobj
 xref
@@ -71,13 +92,13 @@ xref
 0000000060 00000 n
 0000000118 00000 n
 0000000242 00000 n
-0000000436 00000 n
-0000000702 00000 n
-0000001036 00000 n
+0000000434 00000 n
+0000000696 00000 n
+0000001030 00000 n
 trailer
 << /Size 7
 /Root 1 0 R
 >>
 startxref
-1037
+1031
 %%EOF
