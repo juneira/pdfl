@@ -115,4 +115,19 @@ three</text></content></page></pdf>";
             _ => panic!("Expected line"),
         }
     }
+
+    #[test]
+    fn test_parse_circle() {
+        let input = "<pdf><page><content><circle pos_x=\"5\" pos_y=\"10\" width=\"20\" height=\"20\" /></content></page></pdf>";
+        let result = parse(input).unwrap();
+        match &result.child_page.child_content.children[0] {
+            ContentElement::Circle(circ) => {
+                assert_eq!(circ.attributes.get("pos_x"), Some(&"5".to_string()));
+                assert_eq!(circ.attributes.get("pos_y"), Some(&"10".to_string()));
+                assert_eq!(circ.attributes.get("width"), Some(&"20".to_string()));
+                assert_eq!(circ.attributes.get("height"), Some(&"20".to_string()));
+            }
+            _ => panic!("Expected circle"),
+        }
+    }
 }

@@ -1,0 +1,7 @@
+<pdf>
+  <page>
+    <content>
+      <circle pos_x="100" pos_y="500" width="50" height="50" color="#0000FF" />
+    </content>
+  </page>
+</pdf>

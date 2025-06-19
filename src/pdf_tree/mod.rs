@@ -7,6 +7,7 @@ mod content_node;
 mod text_node;
 mod rectangle_node;
 mod line_node;
+mod circle_node;
 
 pub use pdf_node::PdfNode;
 pub use font_node::FontNode;
@@ -17,6 +18,7 @@ pub use content_node::ContentNode;
 pub use text_node::TextNode;
 pub use rectangle_node::RectangleNode;
 pub use line_node::LineNode;
+pub use circle_node::CircleNode;
 pub use content_node::ContentItem;
 
 #[cfg(test)]
