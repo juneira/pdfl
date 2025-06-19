@@ -138,6 +138,9 @@ fn content_node_from_ast(
             crate::parser::ContentElement::Line(l) => {
                 crate::pdf_tree::ContentItem::Line(line_node_from_ast(l))
             }
+            crate::parser::ContentElement::Circle(c) => {
+                crate::pdf_tree::ContentItem::Circle(circle_node_from_ast(c))
+            }
         })
         .collect();
 
@@ -256,6 +259,44 @@ fn line_node_from_ast(ast_line: &crate::parser::LineNode) -> crate::pdf_tree::Li
         x_pos,
         y_pos,
         width,
+        color,
+    }
+}
+
+fn circle_node_from_ast(ast_circle: &crate::parser::CircleNode) -> crate::pdf_tree::CircleNode {
+    let x_pos = ast_circle
+        .attributes
+        .get("pos_x")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let y_pos = ast_circle
+        .attributes
+        .get("pos_y")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let width = ast_circle
+        .attributes
+        .get("width")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let height = ast_circle
+        .attributes
+        .get("height")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let color = ast_circle
+        .attributes
+        .get("color")
+        .map(|v| v.trim_start_matches('#'))
+        .and_then(|v| u32::from_str_radix(v, 16).ok())
+        .map(|rgb| (((rgb >> 16) & 0xff) as u8, ((rgb >> 8) & 0xff) as u8, (rgb & 0xff) as u8))
+        .unwrap_or((0, 0, 0));
+
+    crate::pdf_tree::CircleNode {
+        x_pos,
+        y_pos,
+        width,
+        height,
         color,
     }
 }
@@ -418,5 +459,15 @@ startxref
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("5 15 m"));
+    }
+
+    #[test]
+    fn test_circle_generation() {
+        let code = "<pdf><page><content><circle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8(buffer).unwrap();
+        assert!(pdf_string.contains("f"));
     }
 }

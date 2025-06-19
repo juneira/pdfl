@@ -1,11 +1,13 @@
 use super::text_node::TextNode;
 use super::rectangle_node::RectangleNode;
 use super::line_node::LineNode;
+use super::circle_node::CircleNode;
 
 pub enum ContentItem {
     Text(TextNode),
     Rectangle(RectangleNode),
     Line(LineNode),
+    Circle(CircleNode),
 }
 
 impl ContentItem {
@@ -14,6 +16,7 @@ impl ContentItem {
             ContentItem::Text(t) => t.to_obj(),
             ContentItem::Rectangle(r) => r.to_obj(),
             ContentItem::Line(l) => l.to_obj(),
+            ContentItem::Circle(c) => c.to_obj(),
         }
     }
 }
