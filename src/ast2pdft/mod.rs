@@ -141,9 +141,8 @@ fn content_node_from_ast(
             crate::parser::ContentElement::Circle(c) => {
                 Some(crate::pdf_tree::ContentItem::Circle(circle_node_from_ast(c)))
             }
-            crate::parser::ContentElement::Image(_i) => {
-                // Image elements are not yet supported in PDF generation
-                None
+            crate::parser::ContentElement::Image(i) => {
+                Some(crate::pdf_tree::ContentItem::Image(image_node_from_ast(i)))
             }
         })
         .collect();
@@ -305,9 +304,16 @@ fn circle_node_from_ast(ast_circle: &crate::parser::CircleNode) -> crate::pdf_tr
     }
 }
 
+fn image_node_from_ast(ast_image: &crate::parser::ImageNode) -> crate::pdf_tree::ImageNode {
+    crate::pdf_tree::ImageNode {
+        attributes: ast_image.attributes.clone(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use image;
 
     #[test]
     fn test_to_pdft() {
@@ -473,5 +479,22 @@ startxref
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("f"));
+    }
+
+    #[test]
+    fn test_image_generation() {
+        let dir = std::env::temp_dir();
+        let path = dir.join("pdfl_test_img.png");
+        let img = image::RgbImage::from_pixel(1, 1, image::Rgb([10, 20, 30]));
+        img.save(&path).unwrap();
+
+        let code = format!("<pdf><page><content><image src=\"{}\" /></content></page></pdf>", path.to_str().unwrap());
+        let node = crate::parser::parse(&code).unwrap();
+        let pdft = to_pdft(node);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8(buffer).unwrap();
+        assert!(pdf_string.contains("BI"));
+
+        std::fs::remove_file(path).unwrap();
     }
 }
