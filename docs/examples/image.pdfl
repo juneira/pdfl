@@ -1,0 +1,7 @@
+<pdf>
+  <page>
+    <content>
+      <image src="docs/logo.png" pos_x="100" pos_y="500" width="200" height="200" />
+    </content>
+  </page>
+</pdf>
