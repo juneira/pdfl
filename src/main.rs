@@ -2,11 +2,30 @@ mod ast2pdft;
 mod parser;
 mod pdf_tree;
 
-use std::io::{self, Read};
+use std::io::Write;
+use std::fs;
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(name = "pdfl")]
+#[command(about = "A PDF generator from custom language")]
+struct Args {
+    /// Path to the input code file
+    input_file: String,
+
+    /// Output PDF filename
+    output_file: String,
+
+    /// Image paths (can be specified multiple times)
+    #[arg(short, long = "image", action = clap::ArgAction::Append)]
+    images: Vec<String>,
+}
 
 fn main() {
-    let mut code = String::new();
-    io::stdin().read_to_string(&mut code).expect("Failed to read from stdin");
+    let args = Args::parse();
+
+    let code = fs::read_to_string(&args.input_file)
+        .expect("Failed to read input file");
 
     let ast = parser::parse(&code).unwrap();
 
@@ -14,10 +33,9 @@ fn main() {
 
     let node = pdft.to_buffer();
 
-    let file = std::fs::File::create("output.pdf");
+    let file = std::fs::File::create(&args.output_file);
     match file {
         Ok(mut file) => {
-            use std::io::Write;
             file.write_all(&node).unwrap();
             println!("PDF generated successfully!");
         }

@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 lalrpop-util = { version = "0.20", features = ["lexer"] }
+clap = { version = "4.5.39", features = ["derive"] }
 wasm-bindgen = "0.2"
 
 [build-dependencies]
