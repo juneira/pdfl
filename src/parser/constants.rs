@@ -28,6 +28,7 @@ pub enum ContentElement {
     Rectangle(RectangleNode),
     Line(LineNode),
     Circle(CircleNode),
+    Image(ImageNode),
 }
 
 #[derive(Debug, PartialEq)]
@@ -53,5 +54,10 @@ pub struct LineNode {
 
 #[derive(Debug, PartialEq)]
 pub struct CircleNode {
+    pub attributes: HashMap<String, String>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ImageNode {
     pub attributes: HashMap<String, String>,
 }

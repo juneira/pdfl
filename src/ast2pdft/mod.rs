@@ -128,18 +128,22 @@ fn content_node_from_ast(
     let elements = ast_content
         .children
         .iter()
-        .map(|el| match el {
+        .filter_map(|el| match el {
             crate::parser::ContentElement::Text(t) => {
-                crate::pdf_tree::ContentItem::Text(text_node_from_ast(t))
+                Some(crate::pdf_tree::ContentItem::Text(text_node_from_ast(t)))
             }
             crate::parser::ContentElement::Rectangle(r) => {
-                crate::pdf_tree::ContentItem::Rectangle(rect_node_from_ast(r))
+                Some(crate::pdf_tree::ContentItem::Rectangle(rect_node_from_ast(r)))
             }
             crate::parser::ContentElement::Line(l) => {
-                crate::pdf_tree::ContentItem::Line(line_node_from_ast(l))
+                Some(crate::pdf_tree::ContentItem::Line(line_node_from_ast(l)))
             }
             crate::parser::ContentElement::Circle(c) => {
-                crate::pdf_tree::ContentItem::Circle(circle_node_from_ast(c))
+                Some(crate::pdf_tree::ContentItem::Circle(circle_node_from_ast(c)))
+            }
+            crate::parser::ContentElement::Image(_i) => {
+                // Image elements are not yet supported in PDF generation
+                None
             }
         })
         .collect();
