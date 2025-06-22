@@ -1,4 +1,4 @@
-use crate::parser::{PdfNode, PageNode, ContentNode, ContentElement, TextNode, RectangleNode, LineNode, CircleNode, ResourceNode, FontNode, parse_attributes};
+use crate::parser::{PdfNode, PageNode, ContentNode, ContentElement, TextNode, RectangleNode, LineNode, CircleNode, ImageNode, ResourceNode, FontNode, parse_attributes};
 
 grammar;
 
@@ -33,6 +33,7 @@ Element: ContentElement = {
     <r:Rectangle> => ContentElement::Rectangle(r),
     <l:Line> => ContentElement::Line(l),
     <c:Circle> => ContentElement::Circle(c),
+    <i:Image> => ContentElement::Image(i),
 };
 
 Rectangle: RectangleNode = {
@@ -50,6 +51,12 @@ Line: LineNode = {
 Circle: CircleNode = {
     <open:r#"<circle[^>]*/>"#> => CircleNode {
         attributes: parse_attributes(open.trim_start_matches("<circle").trim_end_matches("/>")),
+    },
+};
+
+Image: ImageNode = {
+    <open:r#"<image[^>]*/>"#> => ImageNode {
+        attributes: parse_attributes(open.trim_start_matches("<image").trim_end_matches("/>")),
     },
 };
 

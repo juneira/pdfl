@@ -130,4 +130,20 @@ three</text></content></page></pdf>";
             _ => panic!("Expected circle"),
         }
     }
+
+    #[test]
+    fn test_parse_image() {
+        let input = "<pdf><page><content><image src=\"img.png\" pos_x=\"1\" pos_y=\"2\" width=\"3\" height=\"4\" /></content></page></pdf>";
+        let result = parse(input).unwrap();
+        match &result.child_page.child_content.children[0] {
+            ContentElement::Image(img) => {
+                assert_eq!(img.attributes.get("src"), Some(&"img.png".to_string()));
+                assert_eq!(img.attributes.get("pos_x"), Some(&"1".to_string()));
+                assert_eq!(img.attributes.get("pos_y"), Some(&"2".to_string()));
+                assert_eq!(img.attributes.get("width"), Some(&"3".to_string()));
+                assert_eq!(img.attributes.get("height"), Some(&"4".to_string()));
+            }
+            _ => panic!("Expected image"),
+        }
+    }
 }
