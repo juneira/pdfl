@@ -321,8 +321,38 @@ fn circle_node_from_ast(ast_circle: &crate::parser::CircleNode) -> crate::pdf_tr
 }
 
 fn image_node_from_ast(ast_image: &crate::parser::ImageNode) -> crate::pdf_tree::ImageNode {
+    let name = ast_image
+        .attributes
+        .get("src")
+        .expect("src attribute missing")
+        .to_string();
+    let x_pos = ast_image
+        .attributes
+        .get("pos_x")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let y_pos = ast_image
+        .attributes
+        .get("pos_y")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let width = ast_image
+        .attributes
+        .get("width")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+    let height = ast_image
+        .attributes
+        .get("height")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(50);
+
     crate::pdf_tree::ImageNode {
-        attributes: ast_image.attributes.clone(),
+        name,
+        x_pos,
+        y_pos,
+        width,
+        height,
     }
 }
 
@@ -504,12 +534,13 @@ startxref
         let img = image::RgbImage::from_pixel(1, 1, image::Rgb([10, 20, 30]));
         img.save(&path).unwrap();
 
-        let code = format!("<pdf><page><content><image src=\"{}\" /></content></page></pdf>", path.to_str().unwrap());
-        let node = crate::parser::parse(&code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let code = "<pdf><page><content><image src=\"pdfl_test_img.png\" /></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let images = vec![path.to_str().unwrap().to_string()];
+        let pdft = to_pdft(node, &images);
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
-        assert!(pdf_string.contains("BI"));
+        assert!(pdf_string.contains("/pdfl_test_img.png Do"));
 
         std::fs::remove_file(path).unwrap();
     }
