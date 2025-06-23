@@ -1,5 +1,9 @@
 pub struct ImageNode {
-    pub attributes: std::collections::HashMap<String, String>,
+    pub src: String,
+    pub x_pos: usize,
+    pub y_pos: usize,
+    pub width: Option<usize>,
+    pub height: Option<usize>,
 }
 
 impl ImageNode {
@@ -9,17 +13,15 @@ impl ImageNode {
         use image::io::Reader as ImageReader;
         use std::io::Write;
 
-        let src = self
-            .attributes
-            .get("src")
-            .expect("src attribute missing");
-
-        let img = ImageReader::open(src)
+        let img = ImageReader::open(&self.src)
             .expect("unable to open image")
             .decode()
             .expect("unable to decode image");
         let rgb = img.to_rgb8();
         let (width, height) = rgb.dimensions();
+
+        let width_out = self.width.unwrap_or(width as usize);
+        let height_out = self.height.unwrap_or(height as usize);
 
         let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
         encoder
@@ -30,8 +32,14 @@ impl ImageNode {
         let hex: String = compressed.iter().map(|b| format!("{:02X}", b)).collect();
 
         format!(
-            "BI\n/Width {}\n/Height {}\n/ColorSpace /DeviceRGB\n/BitsPerComponent 8\n/Filter /FlateDecode\nID\n<{}>\nEI",
-            width, height, hex
+            "q\n{} 0 0 {} {} {} cm\nBI\n/Width {}\n/Height {}\n/ColorSpace /DeviceRGB\n/BitsPerComponent 8\n/Filter /FlateDecode\nID\n<{}>\nEI\nQ",
+            width_out,
+            height_out,
+            self.x_pos,
+            self.y_pos,
+            width,
+            height,
+            hex
         )
     }
 }
@@ -39,7 +47,6 @@ impl ImageNode {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
     use std::io::Read;
 
     #[test]
@@ -50,9 +57,13 @@ mod tests {
         let img = image::RgbImage::from_pixel(1, 1, image::Rgb([10, 20, 30]));
         img.save(&path).unwrap();
 
-        let mut attrs = HashMap::new();
-        attrs.insert("src".to_string(), path.to_str().unwrap().to_string());
-        let image = ImageNode { attributes: attrs };
+        let image = ImageNode {
+            src: path.to_str().unwrap().to_string(),
+            x_pos: 0,
+            y_pos: 0,
+            width: None,
+            height: None,
+        };
 
         let obj = image.to_obj();
         assert!(obj.contains("/Filter /FlateDecode"));
