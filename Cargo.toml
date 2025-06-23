@@ -12,6 +12,7 @@ clap = { version = "4.5.39", features = ["derive"] }
 wasm-bindgen = "0.2"
 flate2 = "1.0"
 image = "0.25"
+ascii85 = "0.2"
 
 [build-dependencies]
 lalrpop = "0.22.2"

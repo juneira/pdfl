@@ -9,6 +9,7 @@ mod rectangle_node;
 mod line_node;
 mod circle_node;
 mod image_node;
+mod image_xobject_node;
 
 pub use pdf_node::PdfNode;
 pub use font_node::FontNode;
@@ -21,6 +22,7 @@ pub use rectangle_node::RectangleNode;
 pub use line_node::LineNode;
 pub use circle_node::CircleNode;
 pub use image_node::ImageNode;
+pub use image_xobject_node::ImageXObjectNode;
 pub use content_node::ContentItem;
 
 #[cfg(test)]
@@ -36,8 +38,9 @@ mod tests {
             base_font: "Helvetica".to_string(),
         };
 
-        let mut resources = std::collections::HashMap::new();
-        resources.insert("F1".to_string(), font_node);
+        let mut fonts = std::collections::HashMap::new();
+        fonts.insert("F1".to_string(), font_node);
+        let images = std::collections::HashMap::new();
 
         let pdf_node = PdfNode {
             version: "1.4".to_string(),
@@ -53,7 +56,8 @@ mod tests {
                         PageNode {
                             obj_num: 3,
                             gen_num: 0,
-                            resources: resources,
+                            fonts: fonts,
+                            images: images,
                             contents: ContentNode {
                                 obj_num: 4,
                                 gen_num: 0,

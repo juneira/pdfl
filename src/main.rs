@@ -29,7 +29,7 @@ fn main() {
 
     let ast = parser::parse(&code).unwrap();
 
-    let pdft = ast2pdft::to_pdft(ast);
+    let pdft = ast2pdft::to_pdft(ast, &args.images);
 
     let node = pdft.to_buffer();
 
