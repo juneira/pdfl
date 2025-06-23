@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-pub fn to_pdft(pdf_node: crate::parser::PdfNode) -> crate::pdf_tree::PdfNode {
+pub fn to_pdft(pdf_node: crate::parser::PdfNode, images: &[String]) -> crate::pdf_tree::PdfNode {
     let version = "1.4".to_string();
-    let (catalog, total_obj) = catalog_node_from_ast(pdf_node);
+    let (catalog, total_obj) = catalog_node_from_ast(pdf_node, images);
 
     crate::pdf_tree::PdfNode {
         version,
@@ -11,8 +11,8 @@ pub fn to_pdft(pdf_node: crate::parser::PdfNode) -> crate::pdf_tree::PdfNode {
     }
 }
 
-fn catalog_node_from_ast(ast_pdf: crate::parser::PdfNode) -> (crate::pdf_tree::CatalogNode, usize) {
-    let (pages_node, total_obj) = pages_node_from_ast(ast_pdf.child_page);
+fn catalog_node_from_ast(ast_pdf: crate::parser::PdfNode, images: &[String]) -> (crate::pdf_tree::CatalogNode, usize) {
+    let (pages_node, total_obj) = pages_node_from_ast(ast_pdf.child_page, images);
 
     let catalog = crate::pdf_tree::CatalogNode {
         obj_num: 1,
@@ -23,7 +23,7 @@ fn catalog_node_from_ast(ast_pdf: crate::parser::PdfNode) -> (crate::pdf_tree::C
     (catalog, total_obj + 1)
 }
 
-fn pages_node_from_ast(ast_page: crate::parser::PageNode) -> (crate::pdf_tree::PagesNode, usize) {
+fn pages_node_from_ast(ast_page: crate::parser::PageNode, images: &[String]) -> (crate::pdf_tree::PagesNode, usize) {
     let mut total_obj = 0;
     let mut kids: Vec<crate::pdf_tree::PageNode> = Vec::new();
 
@@ -32,7 +32,7 @@ fn pages_node_from_ast(ast_page: crate::parser::PageNode) -> (crate::pdf_tree::P
     let mut current_page = ast_page;
 
     loop {
-        let (page_node, used_obj) = page_node_from_ast(&current_page, obj_num, 0);
+        let (page_node, used_obj) = page_node_from_ast(&current_page, obj_num, 0, images);
         total_obj += used_obj;
         obj_num += used_obj;
 
@@ -59,8 +59,10 @@ fn page_node_from_ast(
     ast_page: &crate::parser::PageNode,
     obj_num: usize,
     gen_num: usize,
+    images: &[String],
 ) -> (crate::pdf_tree::PageNode, usize) {
-    let mut resources = HashMap::new();
+    let mut fonts = HashMap::new();
+    let mut images_map = HashMap::new();
     let mut next_obj = obj_num + 1;
 
     if let Some(res) = &ast_page.resources {
@@ -81,7 +83,7 @@ fn page_node_from_ast(
                 .cloned()
                 .unwrap_or_else(|| "Helvetica".to_string());
 
-            resources.insert(
+            fonts.insert(
                 key,
                 crate::pdf_tree::FontNode {
                     obj_num: next_obj,
@@ -93,7 +95,20 @@ fn page_node_from_ast(
             next_obj += 1;
         }
     } else {
-        resources.insert("F1".to_string(), resource(next_obj, gen_num));
+        fonts.insert("F1".to_string(), resource(next_obj, gen_num));
+        next_obj += 1;
+    }
+
+    for img_path in images {
+        let name = std::path::Path::new(img_path)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap()
+            .to_string();
+        images_map.insert(
+            name.clone(),
+            crate::pdf_tree::ImageXObjectNode::new(next_obj, gen_num, img_path, name),
+        );
         next_obj += 1;
     }
 
@@ -104,7 +119,8 @@ fn page_node_from_ast(
         crate::pdf_tree::PageNode {
             obj_num,
             gen_num,
-            resources,
+            fonts,
+            images: images_map,
             contents: content_node,
         },
         next_obj - obj_num,
@@ -344,7 +360,7 @@ mod tests {
     ";
 
     let node = crate::parser::parse(code).unwrap();
-    let pdft = to_pdft(node);
+    let pdft = to_pdft(node, &Vec::new());
 
     let buffer = pdft.to_buffer();
     let pdf_string = String::from_utf8(buffer).unwrap();
@@ -435,7 +451,7 @@ startxref
     fn test_text_position_attributes() {
         let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" pos_x=\"20\" pos_y=\"50\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node);
+        let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("20 50 Td"));
@@ -445,7 +461,7 @@ startxref
     fn test_text_font_size_attribute() {
         let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" font_size=\"30\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node);
+        let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("/F1 30 Tf"));
@@ -455,7 +471,7 @@ startxref
     fn test_rectangle_generation() {
         let code = "<pdf><page><content><rectangle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node);
+        let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("10 20 30 40 re"));
@@ -465,7 +481,7 @@ startxref
     fn test_line_generation() {
         let code = "<pdf><page><content><line pos_x=\"5\" pos_y=\"15\" width=\"25\" color=\"#00FF00\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node);
+        let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("5 15 m"));
@@ -475,7 +491,7 @@ startxref
     fn test_circle_generation() {
         let code = "<pdf><page><content><circle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node);
+        let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("f"));
@@ -490,7 +506,7 @@ startxref
 
         let code = format!("<pdf><page><content><image src=\"{}\" /></content></page></pdf>", path.to_str().unwrap());
         let node = crate::parser::parse(&code).unwrap();
-        let pdft = to_pdft(node);
+        let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8(buffer).unwrap();
         assert!(pdf_string.contains("BI"));
