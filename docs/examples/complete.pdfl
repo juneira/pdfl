@@ -6,10 +6,8 @@
       <font key="helvetica" base_font="Helvetica" />
     </resource>
     <content>
-      <rectangle pos_x="0" pos_y="660" width="612" height="200" color="#FF3333" />
-      <text font="Courier" pos_x="225" pos_y="700" font_size="50" color="#FFFFFF">
-        PDFL
-      </text>
+      <rectangle pos_x="0" pos_y="660" width="612" height="200" color="#3d3d3d" />
+      <image src="logo.png" pos_x="170" pos_y="680" width="250" height="98" />
       <text font="helvetica" pos_x="130" pos_y="620" font_size="20" color="#6B6B6B">
         The Markup Language to generate PDF
       </text>
