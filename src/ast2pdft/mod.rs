@@ -107,7 +107,7 @@ fn page_node_from_ast(
             .to_string();
         images_map.insert(
             name.clone(),
-            crate::pdf_tree::ImageXObjectNode::new(next_obj, gen_num, img_path, name),
+            crate::pdf_tree::ImageXObjectNode::new(next_obj, gen_num, img_path),
         );
         next_obj += 1;
     }

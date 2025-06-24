@@ -1,18 +1,17 @@
 use flate2::{write::ZlibEncoder, Compression};
-use image::io::Reader as ImageReader;
+use image::ImageReader;
 use std::io::Write;
 
 pub struct ImageXObjectNode {
     pub obj_num: usize,
     pub gen_num: usize,
-    pub name: String,
     pub width: u32,
     pub height: u32,
     pub data: Vec<u8>,
 }
 
 impl ImageXObjectNode {
-    pub fn new(obj_num: usize, gen_num: usize, path: &str, name: String) -> Self {
+    pub fn new(obj_num: usize, gen_num: usize, path: &str) -> Self {
         let img = ImageReader::open(path)
             .expect("unable to open image")
             .decode()
@@ -27,7 +26,6 @@ impl ImageXObjectNode {
         Self {
             obj_num,
             gen_num,
-            name,
             width,
             height,
             data,
