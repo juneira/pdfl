@@ -1,5 +1,6 @@
-use ascii85::encode;
+use flate2::{write::ZlibEncoder, Compression};
 use image::io::Reader as ImageReader;
+use std::io::Write;
 
 pub struct ImageXObjectNode {
     pub obj_num: usize,
@@ -7,7 +8,7 @@ pub struct ImageXObjectNode {
     pub name: String,
     pub width: u32,
     pub height: u32,
-    pub data: String,
+    pub data: Vec<u8>,
 }
 
 impl ImageXObjectNode {
@@ -18,7 +19,11 @@ impl ImageXObjectNode {
             .expect("unable to decode image");
         let rgb = img.to_rgb8();
         let (width, height) = rgb.dimensions();
-        let data = encode(&rgb.into_raw());
+        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
+        encoder
+            .write_all(&rgb.into_raw())
+            .expect("unable to compress image");
+        let data = encoder.finish().expect("unable to finish compression");
         Self {
             obj_num,
             gen_num,
@@ -30,18 +35,21 @@ impl ImageXObjectNode {
     }
 
     pub fn to_buffer(&self) -> Vec<u8> {
-        self.to_obj().into_bytes()
+        let mut buffer = Vec::new();
+        buffer.extend(
+            format!(
+                "{} {} obj\n<< /Type /XObject\n/Subtype /Image\n/Width {}\n/Height {}\n/ColorSpace /DeviceRGB\n/BitsPerComponent 8\n/Filter /FlateDecode\n/Length {}>>\nstream\n",
+                self.obj_num,
+                self.gen_num,
+                self.width,
+                self.height,
+                self.data.len(),
+            )
+            .as_bytes(),
+        );
+        buffer.extend(&self.data);
+        buffer.extend(b"\nendstream\nendobj\n");
+        buffer
     }
 
-    fn to_obj(&self) -> String {
-        format!(
-            "{} {} obj\n<< /Type /XObject\n/Subtype /Image\n/Width {}\n/Height {}\n/ColorSpace /DeviceRGB\n/BitsPerComponent 8\n/Filter /ASCII85Decode\n/Length {}>>\nstream\n{}\nendstream\nendobj\n",
-            self.obj_num,
-            self.gen_num,
-            self.width,
-            self.height,
-            self.data.len(),
-            self.data,
-        )
-    }
 }
