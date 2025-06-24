@@ -107,7 +107,7 @@ fn page_node_from_ast(
             .to_string();
         images_map.insert(
             name.clone(),
-            crate::pdf_tree::ImageXObjectNode::new(next_obj, gen_num, img_path, name),
+            crate::pdf_tree::ImageXObjectNode::new(next_obj, gen_num, img_path),
         );
         next_obj += 1;
     }
@@ -393,7 +393,7 @@ mod tests {
     let pdft = to_pdft(node, &Vec::new());
 
     let buffer = pdft.to_buffer();
-    let pdf_string = String::from_utf8(buffer).unwrap();
+    let pdf_string = String::from_utf8_lossy(&buffer);
 
     assert_eq!(
         pdf_string,
@@ -483,7 +483,7 @@ startxref
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
-        let pdf_string = String::from_utf8(buffer).unwrap();
+        let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("20 50 Td"));
     }
 
@@ -493,7 +493,7 @@ startxref
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
-        let pdf_string = String::from_utf8(buffer).unwrap();
+        let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("/F1 30 Tf"));
     }
 
@@ -503,7 +503,7 @@ startxref
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
-        let pdf_string = String::from_utf8(buffer).unwrap();
+        let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("10 20 30 40 re"));
     }
 
@@ -513,7 +513,7 @@ startxref
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
-        let pdf_string = String::from_utf8(buffer).unwrap();
+        let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("5 15 m"));
     }
 
@@ -523,7 +523,7 @@ startxref
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
-        let pdf_string = String::from_utf8(buffer).unwrap();
+        let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("f"));
     }
 
@@ -539,7 +539,7 @@ startxref
         let images = vec![path.to_str().unwrap().to_string()];
         let pdft = to_pdft(node, &images);
         let buffer = pdft.to_buffer();
-        let pdf_string = String::from_utf8(buffer).unwrap();
+        let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("/pdfl_test_img.png Do"));
 
         std::fs::remove_file(path).unwrap();
