@@ -68,6 +68,7 @@ mod tests {
                                     y_pos: 700,
                                     text: "Hello World".to_string(),
                                     color: (0, 0, 0),
+                                    rotation: 0.0,
                                 })],
                             },
                         },
