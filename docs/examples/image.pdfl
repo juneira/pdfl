@@ -1,7 +1,7 @@
 <pdf>
   <page>
     <content>
-      <image src="logo.png" pos_x="100" pos_y="500" width="250" height="98" />
+      <image src="logo.png" pos_x="100" pos_y="500" width="250" height="98" rotation="90" />
     </content>
   </page>
 </pdf>
