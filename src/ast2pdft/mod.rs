@@ -352,6 +352,12 @@ fn image_node_from_ast(ast_image: &crate::parser::ImageNode) -> crate::pdf_tree:
         .get("height")
         .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(50);
+    let rotation = ast_image
+        .attributes
+        .get("rotation")
+        .and_then(|v| v.parse::<f32>().ok())
+        .unwrap_or(0.0)
+        .clamp(0.0, 360.0);
 
     crate::pdf_tree::ImageNode {
         name,
@@ -359,6 +365,7 @@ fn image_node_from_ast(ast_image: &crate::parser::ImageNode) -> crate::pdf_tree:
         y_pos,
         width,
         height,
+        rotation,
     }
 }
 
@@ -557,6 +564,25 @@ startxref
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("/pdfl_test_img.png Do"));
+
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_image_rotation() {
+        let dir = std::env::temp_dir();
+        let path = dir.join("pdfl_test_img2.png");
+        let img = image::RgbImage::from_pixel(1, 1, image::Rgb([10, 20, 30]));
+        img.save(&path).unwrap();
+
+        let code = "<pdf><page><content><image src=\"pdfl_test_img2.png\" rotation=\"20\" /></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let images = vec![path.to_str().unwrap().to_string()];
+        let pdft = to_pdft(node, &images);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8_lossy(&buffer);
+        assert!(pdf_string.contains("pdfl_test_img2.png Do"));
+        assert!(pdf_string.contains("17.10"));
 
         std::fs::remove_file(path).unwrap();
     }

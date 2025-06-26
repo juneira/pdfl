@@ -146,4 +146,16 @@ three</text></content></page></pdf>";
             _ => panic!("Expected image"),
         }
     }
+
+    #[test]
+    fn test_parse_image_rotation() {
+        let input = "<pdf><page><content><image src=\"img.png\" rotation=\"15\" /></content></page></pdf>";
+        let result = parse(input).unwrap();
+        match &result.child_page.child_content.children[0] {
+            ContentElement::Image(img) => {
+                assert_eq!(img.attributes.get("rotation"), Some(&"15".to_string()));
+            }
+            _ => panic!("Expected image"),
+        }
+    }
 }
