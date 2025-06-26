@@ -11,7 +11,7 @@
       <text font="helvetica" pos_x="130" pos_y="620" font_size="20" color="#6B6B6B">
         The Markup Language to generate PDF
       </text>
-      <line pos_x="160" pos_y="605" width="250" color="#FF3333" rotation="20" />
+      <line pos_x="160" pos_y="605" width="250" color="#FF3333" />
       <text font="times" pos_x="250" pos_y="100" font_size="10">
         @juneira - 2025
       </text>
