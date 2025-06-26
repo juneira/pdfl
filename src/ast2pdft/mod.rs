@@ -201,6 +201,11 @@ fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::Te
         .and_then(|v| u32::from_str_radix(v, 16).ok())
         .map(|rgb| (((rgb >> 16) & 0xff) as u8, ((rgb >> 8) & 0xff) as u8, (rgb & 0xff) as u8))
         .unwrap_or((0, 0, 0));
+    let rotation = ast_text
+        .attributes
+        .get("rotation")
+        .and_then(|v| v.parse::<f32>().ok())
+        .unwrap_or(0.0);
 
     crate::pdf_tree::TextNode {
         font,
@@ -209,6 +214,7 @@ fn text_node_from_ast(ast_text: &crate::parser::TextNode) -> crate::pdf_tree::Te
         y_pos,
         text: ast_text.child_string.clone(),
         color,
+        rotation,
     }
 }
 
@@ -531,6 +537,16 @@ startxref
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("0.707"));
+    }
+
+    #[test]
+    fn test_text_rotation() {
+        let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" rotation=\"20\">a</text></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node, &Vec::new());
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8_lossy(&buffer);
+        assert!(pdf_string.contains("0.939"));
     }
 
     #[test]
