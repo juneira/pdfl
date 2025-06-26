@@ -233,6 +233,11 @@ fn rect_node_from_ast(ast_rect: &crate::parser::RectangleNode) -> crate::pdf_tre
         .get("height")
         .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(50);
+    let rotation = ast_rect
+        .attributes
+        .get("rotation")
+        .and_then(|v| v.parse::<f32>().ok())
+        .unwrap_or(0.0);
     let color = ast_rect
         .attributes
         .get("color")
@@ -246,6 +251,7 @@ fn rect_node_from_ast(ast_rect: &crate::parser::RectangleNode) -> crate::pdf_tre
         y_pos,
         width,
         height,
+        rotation,
         color,
     }
 }
@@ -510,7 +516,18 @@ startxref
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
-        assert!(pdf_string.contains("10 20 30 40 re"));
+        assert!(pdf_string.contains("10 20 cm"));
+        assert!(pdf_string.contains("0 0 30 40 re"));
+    }
+
+    #[test]
+    fn test_rectangle_rotation() {
+        let code = "<pdf><page><content><rectangle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" rotation=\"45\" /></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node, &Vec::new());
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8_lossy(&buffer);
+        assert!(pdf_string.contains("0.707"));
     }
 
     #[test]
