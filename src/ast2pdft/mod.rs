@@ -266,6 +266,11 @@ fn line_node_from_ast(ast_line: &crate::parser::LineNode) -> crate::pdf_tree::Li
         .get("width")
         .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(50);
+    let rotation = ast_line
+        .attributes
+        .get("rotation")
+        .and_then(|v| v.parse::<f32>().ok())
+        .unwrap_or(0.0);
     let color = ast_line
         .attributes
         .get("color")
@@ -279,6 +284,7 @@ fn line_node_from_ast(ast_line: &crate::parser::LineNode) -> crate::pdf_tree::Li
         y_pos,
         width,
         color,
+        rotation,
     }
 }
 
@@ -514,7 +520,17 @@ startxref
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
-        assert!(pdf_string.contains("5 15 m"));
+        assert!(pdf_string.contains("5 15 cm"));
+    }
+
+    #[test]
+    fn test_line_rotation() {
+        let code = "<pdf><page><content><line pos_x=\"5\" pos_y=\"15\" width=\"25\" rotation=\"45\" /></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node, &Vec::new());
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8_lossy(&buffer);
+        assert!(pdf_string.contains("0.707"));
     }
 
     #[test]
