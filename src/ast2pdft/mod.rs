@@ -148,7 +148,7 @@ startxref
 
     #[test]
     fn test_text_font_size_attribute() {
-        let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" font_size=\"30\">a</text></content></page></pdf>";
+        let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font_size=\"30\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
         let pdft = to_pdft(node, &Vec::new());
         let buffer = pdft.to_buffer();
