@@ -19,7 +19,11 @@ impl PageNode {
 
         for font in self.fonts.values() {
             xref.push(xref.last().unwrap() + buffer.len() + 1);
-            buffer.extend(font.to_buffer());
+            buffer.extend(font.obj_bytes());
+            if let Some(bytes) = font.file_bytes() {
+                xref.push(xref.last().unwrap() + buffer.len() + 1);
+                buffer.extend(bytes);
+            }
         }
 
         for image in self.images.values() {
@@ -34,11 +38,15 @@ impl PageNode {
     }
 
     fn to_obj(&self) -> String {
-        let fonts_str: Vec<String> = self.fonts.iter()
+        let fonts_str: Vec<String> = self
+            .fonts
+            .iter()
             .map(|(key, font)| format!("/{} {} {} R", key, font.obj_num, font.gen_num))
             .collect();
 
-        let images_str: Vec<String> = self.images.iter()
+        let images_str: Vec<String> = self
+            .images
+            .iter()
             .map(|(key, img)| format!("/{} {} {} R", key, img.obj_num, img.gen_num))
             .collect();
 

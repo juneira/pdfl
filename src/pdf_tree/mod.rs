@@ -36,6 +36,8 @@ mod tests {
             gen_num: 0,
             subtype: "Type1".to_string(),
             base_font: "Helvetica".to_string(),
+            file_obj_num: None,
+            data: None,
         };
 
         let mut fonts = std::collections::HashMap::new();

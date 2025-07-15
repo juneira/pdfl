@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use crate::ast2pdft::content_converter::ContentConverter;
 use crate::ast2pdft::font_converter::FontConverter;
 use crate::ast2pdft::image_converter::ImageConverter;
-use crate::ast2pdft::content_converter::ContentConverter;
+use std::collections::HashMap;
 
 pub struct PageConverter;
 
@@ -24,18 +24,22 @@ impl PageConverter {
         let font_converter = FontConverter::new();
         if let Some(res) = &ast_page.resources {
             for font in &res.fonts {
-                let (key, font_node) = font_converter.convert(font, next_obj, gen_num);
+                let (key, font_node, used) = font_converter.convert(font, next_obj, gen_num);
                 fonts.insert(key, font_node);
-                next_obj += 1;
+                next_obj += used;
             }
         } else {
-            fonts.insert("F1".to_string(), font_converter.create_default(next_obj, gen_num));
+            fonts.insert(
+                "F1".to_string(),
+                font_converter.create_default(next_obj, gen_num),
+            );
             next_obj += 1;
         }
 
         let image_converter = ImageConverter::new();
         for img_path in images {
-            let (name, image_xobject) = image_converter.convert_xobject(img_path, next_obj, gen_num);
+            let (name, image_xobject) =
+                image_converter.convert_xobject(img_path, next_obj, gen_num);
             images_map.insert(name, image_xobject);
             next_obj += 1;
         }

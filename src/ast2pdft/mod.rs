@@ -1,12 +1,12 @@
-mod pdf_converter_main;
+mod attribute_parser;
 mod catalog_converter;
-mod pages_converter;
-mod page_converter;
-mod font_converter;
-mod image_converter;
 mod content_converter;
 mod element_converter;
-mod attribute_parser;
+mod font_converter;
+mod image_converter;
+mod page_converter;
+mod pages_converter;
+mod pdf_converter_main;
 
 pub use pdf_converter_main::PdfConverter;
 
@@ -48,15 +48,15 @@ mod tests {
     </pdf>
     ";
 
-    let node = crate::parser::parse(code).unwrap();
-    let pdft = to_pdft(node, &Vec::new());
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node, &Vec::new());
 
-    let buffer = pdft.to_buffer();
-    let pdf_string = String::from_utf8_lossy(&buffer);
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8_lossy(&buffer);
 
-    assert_eq!(
-        pdf_string,
-        "%PDF-1.4
+        assert_eq!(
+            pdf_string,
+            "%PDF-1.4
 1 0 obj
 << /Type /Catalog
 /Pages 2 0 R
@@ -132,8 +132,8 @@ trailer
 >>
 startxref
 982
-%%EOF");
-
+%%EOF"
+        );
     }
 
     #[test]
@@ -252,5 +252,15 @@ startxref
         assert!(pdf_string.contains("17.10"));
 
         std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_external_font() {
+        let code = "<pdf><page><resource><font key=\"matrix\" src=\"docs/examples/matrix.ttf\" /></resource><content><text font=\"matrix\">a</text></content></page></pdf>";
+        let node = crate::parser::parse(code).unwrap();
+        let pdft = to_pdft(node, &Vec::new());
+        let buffer = pdft.to_buffer();
+        let pdf_string = String::from_utf8_lossy(&buffer);
+        assert!(pdf_string.contains("/FontFile2"));
     }
 }
