@@ -1,0 +1,9 @@
+<pdf>
+  <page>
+    <content>
+      <text font="matrix.ttf" pos_x="50" pos_y="700" font_size="24">
+        Hello Matrix
+      </text>
+    </content>
+  </page>
+</pdf>
