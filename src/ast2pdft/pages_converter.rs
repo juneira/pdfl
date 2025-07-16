@@ -7,7 +7,12 @@ impl PagesConverter {
         Self
     }
 
-    pub fn convert(&self, ast_page: crate::parser::PageNode, images: &[String]) -> (crate::pdf_tree::PagesNode, usize) {
+    pub fn convert(
+        &self,
+        ast_page: crate::parser::PageNode,
+        images: &[String],
+        fonts: &[String],
+    ) -> (crate::pdf_tree::PagesNode, usize) {
         let mut total_obj = 0;
         let mut kids: Vec<crate::pdf_tree::PageNode> = Vec::new();
         let mut obj_num = 3;
@@ -16,7 +21,8 @@ impl PagesConverter {
         let page_converter = PageConverter::new();
 
         loop {
-            let (page_node, used_obj) = page_converter.convert(&current_page, obj_num, 0, images);
+            let (page_node, used_obj) =
+                page_converter.convert(&current_page, obj_num, 0, images, fonts);
             total_obj += used_obj;
             obj_num += used_obj;
 
