@@ -10,9 +10,13 @@ mod pdf_converter_main;
 
 pub use pdf_converter_main::PdfConverter;
 
-pub fn to_pdft(pdf_node: crate::parser::PdfNode, images: &[String]) -> crate::pdf_tree::PdfNode {
+pub fn to_pdft(
+    pdf_node: crate::parser::PdfNode,
+    images: &[String],
+    fonts: &[String],
+) -> crate::pdf_tree::PdfNode {
     let converter = PdfConverter::new();
-    converter.convert(pdf_node, images)
+    converter.convert(pdf_node, images, fonts)
 }
 
 #[cfg(test)]
@@ -49,7 +53,7 @@ mod tests {
     ";
 
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
 
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
@@ -140,7 +144,7 @@ startxref
     fn test_text_position_attributes() {
         let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" pos_x=\"20\" pos_y=\"50\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("20 50 Td"));
@@ -150,7 +154,7 @@ startxref
     fn test_text_font_size_attribute() {
         let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font_size=\"30\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("/F1 30 Tf"));
@@ -160,7 +164,7 @@ startxref
     fn test_rectangle_generation() {
         let code = "<pdf><page><content><rectangle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("10 20 cm"));
@@ -171,7 +175,7 @@ startxref
     fn test_rectangle_rotation() {
         let code = "<pdf><page><content><rectangle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" rotation=\"45\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("0.707"));
@@ -181,7 +185,7 @@ startxref
     fn test_line_generation() {
         let code = "<pdf><page><content><line pos_x=\"5\" pos_y=\"15\" width=\"25\" color=\"#00FF00\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("5 15 cm"));
@@ -191,7 +195,7 @@ startxref
     fn test_line_rotation() {
         let code = "<pdf><page><content><line pos_x=\"5\" pos_y=\"15\" width=\"25\" rotation=\"45\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("0.707"));
@@ -201,7 +205,7 @@ startxref
     fn test_text_rotation() {
         let code = "<pdf><page><resource><font key=\"F1\" /></resource><content><text font=\"F1\" rotation=\"20\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("0.939"));
@@ -211,7 +215,7 @@ startxref
     fn test_circle_generation() {
         let code = "<pdf><page><content><circle pos_x=\"10\" pos_y=\"20\" width=\"30\" height=\"40\" color=\"#FF0000\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let pdft = to_pdft(node, &Vec::new(), &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("f"));
@@ -227,7 +231,7 @@ startxref
         let code = "<pdf><page><content><image src=\"pdfl_test_img.png\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
         let images = vec![path.to_str().unwrap().to_string()];
-        let pdft = to_pdft(node, &images);
+        let pdft = to_pdft(node, &images, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("/pdfl_test_img.png Do"));
@@ -245,7 +249,7 @@ startxref
         let code = "<pdf><page><content><image src=\"pdfl_test_img2.png\" rotation=\"20\" /></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
         let images = vec![path.to_str().unwrap().to_string()];
-        let pdft = to_pdft(node, &images);
+        let pdft = to_pdft(node, &images, &Vec::new());
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("pdfl_test_img2.png Do"));
@@ -256,9 +260,10 @@ startxref
 
     #[test]
     fn test_external_font() {
-        let code = "<pdf><page><resource><font key=\"matrix\" src=\"docs/examples/matrix.ttf\" /></resource><content><text font=\"matrix\">a</text></content></page></pdf>";
+        let code = "<pdf><page><content><text font=\"matrix.ttf\">a</text></content></page></pdf>";
         let node = crate::parser::parse(code).unwrap();
-        let pdft = to_pdft(node, &Vec::new());
+        let fonts = vec!["docs/examples/matrix.ttf".to_string()];
+        let pdft = to_pdft(node, &Vec::new(), &fonts);
         let buffer = pdft.to_buffer();
         let pdf_string = String::from_utf8_lossy(&buffer);
         assert!(pdf_string.contains("/FontFile2"));

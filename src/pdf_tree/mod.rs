@@ -38,6 +38,7 @@ mod tests {
             base_font: "Helvetica".to_string(),
             file_obj_num: None,
             data: None,
+            length1: None,
         };
 
         let mut fonts = std::collections::HashMap::new();

@@ -16,6 +16,7 @@ impl PageConverter {
         obj_num: usize,
         gen_num: usize,
         images: &[String],
+        fonts_paths: &[String],
     ) -> (crate::pdf_tree::PageNode, usize) {
         let mut fonts = HashMap::new();
         let mut images_map = HashMap::new();
@@ -34,6 +35,15 @@ impl PageConverter {
                 font_converter.create_default(next_obj, gen_num),
             );
             next_obj += 1;
+        }
+
+        for font_path in fonts_paths {
+            let (name, font_node, used) =
+                font_converter.convert_file(font_path, next_obj, gen_num);
+            if !fonts.contains_key(&name) {
+                fonts.insert(name, font_node);
+                next_obj += used;
+            }
         }
 
         let image_converter = ImageConverter::new();

@@ -5,6 +5,7 @@ pub struct FontNode {
     pub base_font: String,
     pub file_obj_num: Option<usize>,
     pub data: Option<Vec<u8>>,
+    pub length1: Option<usize>,
 }
 
 impl FontNode {
@@ -13,14 +14,15 @@ impl FontNode {
     }
 
     pub fn file_bytes(&self) -> Option<Vec<u8>> {
-        if let (Some(obj_num), Some(data)) = (self.file_obj_num, &self.data) {
+        if let (Some(obj_num), Some(data), Some(len1)) = (self.file_obj_num, &self.data, self.length1) {
             let mut buf = Vec::new();
             buf.extend(
                 format!(
-                    "{} {} obj\n<< /Length {}>>\nstream\n",
+                    "{} {} obj\n<< /Length {} /Length1 {} /Filter /FlateDecode>>\nstream\n",
                     obj_num,
                     self.gen_num,
-                    data.len()
+                    data.len(),
+                    len1
                 )
                 .as_bytes(),
             );

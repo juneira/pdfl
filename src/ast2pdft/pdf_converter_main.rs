@@ -11,9 +11,14 @@ impl PdfConverter {
         }
     }
 
-    pub fn convert(&self, pdf_node: crate::parser::PdfNode, images: &[String]) -> crate::pdf_tree::PdfNode {
+    pub fn convert(
+        &self,
+        pdf_node: crate::parser::PdfNode,
+        images: &[String],
+        fonts: &[String],
+    ) -> crate::pdf_tree::PdfNode {
         let catalog_converter = CatalogConverter::new();
-        let (catalog, total_obj) = catalog_converter.convert(pdf_node, images);
+        let (catalog, total_obj) = catalog_converter.convert(pdf_node, images, fonts);
 
         crate::pdf_tree::PdfNode {
             version: self.version.clone(),

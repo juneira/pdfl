@@ -1,10 +1,7 @@
 <pdf>
   <page>
-    <resource>
-      <font key="matrix" src="matrix.ttf" />
-    </resource>
     <content>
-      <text font="matrix" pos_x="50" pos_y="700" font_size="24">
+      <text font="matrix.ttf" pos_x="50" pos_y="700" font_size="24">
         Hello Matrix
       </text>
     </content>
