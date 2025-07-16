@@ -7,9 +7,14 @@ impl CatalogConverter {
         Self
     }
 
-    pub fn convert(&self, ast_pdf: crate::parser::PdfNode, images: &[String]) -> (crate::pdf_tree::CatalogNode, usize) {
+    pub fn convert(
+        &self,
+        ast_pdf: crate::parser::PdfNode,
+        images: &[String],
+        fonts: &[String],
+    ) -> (crate::pdf_tree::CatalogNode, usize) {
         let pages_converter = PagesConverter::new();
-        let (pages_node, total_obj) = pages_converter.convert(ast_pdf.child_page, images);
+        let (pages_node, total_obj) = pages_converter.convert(ast_pdf.child_page, images, fonts);
 
         let catalog = crate::pdf_tree::CatalogNode {
             obj_num: 1,

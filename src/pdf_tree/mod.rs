@@ -1,5 +1,6 @@
 mod pdf_node;
 mod font_node;
+mod font_descriptor_node;
 mod page_node;
 mod pages_node;
 mod catalog_node;
@@ -13,6 +14,7 @@ mod image_xobject_node;
 
 pub use pdf_node::PdfNode;
 pub use font_node::FontNode;
+pub use font_descriptor_node::FontDescriptorNode;
 pub use page_node::PageNode;
 pub use pages_node::PagesNode;
 pub use catalog_node::CatalogNode;
@@ -36,6 +38,10 @@ mod tests {
             gen_num: 0,
             subtype: "Type1".to_string(),
             base_font: "Helvetica".to_string(),
+            descriptor_obj_num: None,
+            file_obj_num: None,
+            data: None,
+            length1: None,
         };
 
         let mut fonts = std::collections::HashMap::new();

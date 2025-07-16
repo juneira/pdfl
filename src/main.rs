@@ -19,6 +19,10 @@ struct Args {
     /// Image paths (can be specified multiple times)
     #[arg(short, long = "image", action = clap::ArgAction::Append)]
     images: Vec<String>,
+
+    /// Font paths (can be specified multiple times)
+    #[arg(short, long = "font", action = clap::ArgAction::Append)]
+    fonts: Vec<String>,
 }
 
 fn main() {
@@ -29,7 +33,7 @@ fn main() {
 
     let ast = parser::parse(&code).unwrap();
 
-    let pdft = ast2pdft::to_pdft(ast, &args.images);
+    let pdft = ast2pdft::to_pdft(ast, &args.images, &args.fonts);
 
     let node = pdft.to_buffer();
 
