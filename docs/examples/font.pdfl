@@ -1,7 +1,7 @@
 <pdf>
   <page>
     <content>
-      <text font="matrix.ttf" pos_x="50" pos_y="700" font_size="24">
+      <text font="matrix.ttf" pos_x="50" pos_y="700" font_size="70">
         Hello Matrix
       </text>
     </content>
